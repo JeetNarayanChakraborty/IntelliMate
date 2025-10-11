@@ -3,6 +3,7 @@ package com.IntelliMate.core.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.http.ResponseEntity;
 import java.util.Map;
@@ -21,7 +22,7 @@ public class MainController
 		this.aiEngine = aiEngine;
 	}
 	
-	@PostMapping("/chat")
+	@GetMapping("/chat")
 	public ResponseEntity<Map<String, String>> chat (@RequestParam String query) 
 	{
 		String userMessage = query;
@@ -34,6 +35,12 @@ public class MainController
 		try
 		{
 			String AIResponse = aiEngine.chat(userMessage);
+			
+			System.out.println("AIResponse: " + AIResponse);
+			
+			
+			
+			
 			return ResponseEntity.ok(Map.of("response", AIResponse));
 		}
 		

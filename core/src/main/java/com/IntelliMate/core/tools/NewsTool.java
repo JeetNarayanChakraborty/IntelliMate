@@ -43,6 +43,14 @@ public class NewsTool
 		}
 		
 		
+		
+		
+		System.out.println("Printing from the NewsTool: " + res.toString());
+		
+		
+		
+		
+		
 		return res.toString();
 	}
 }

@@ -25,7 +25,6 @@ public class SecurityConfig
             .csrf(csrf -> csrf.disable())  // Disable CSRF for API testing
             .authorizeHttpRequests(auth -> auth
             	    .anyRequest().permitAll()  // Allow chat endpoint
-                .anyRequest().authenticated()
             );
         
         return http.build();
