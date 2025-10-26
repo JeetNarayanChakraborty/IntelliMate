@@ -1,1 +1,4 @@
-/core/src/main/resources/google/client_secret
+# Google OAuth client secrets
+client_secret.json
+**/client_secret.json
+src/main/resources/client_secret.json
