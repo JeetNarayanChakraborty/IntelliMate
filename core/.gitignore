@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+/core/src/main/resources/google/client_secret
+/core/target/classes/google/client_secret

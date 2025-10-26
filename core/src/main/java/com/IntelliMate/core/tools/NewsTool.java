@@ -1,6 +1,9 @@
 package com.IntelliMate.core.tools;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.stereotype.Component;
 import com.IntelliMate.core.repository.newsRepo.Article;
 import com.IntelliMate.core.service.NewsService.NewsFetchService;
@@ -21,37 +24,34 @@ public class NewsTool
 	}
 	
 	@Tool("Fetches latest news articles on a given topic.")
-	public String getNews(String query)
+	public Map<String, Object> getNews(String query)
 	{
-		List<Article> articles = newsFetchService.fetchNews(query);
-		
-		if(articles.isEmpty())
-		{
-			return "No news articles found for the topic: " + query;
-		}
-		
-		StringBuilder res = new StringBuilder();
-		
-		res.append("Here are the latest news articles:\n\n");
-
-		for(int i=0; i<Math.min(5, articles.size()); i++)
-		{
-			Article article = articles.get(i);
-		    res.append(i + 1).append(". **").append(article.getTitle()).append("**\n\n");  
-		    res.append("   ").append(article.getDescription()).append("\n\n");  
-		    res.append("   🔗 Link: ").append(article.getUrl()).append("\n\n---\n\n");  
-		}
-		
-		
-		
-		
-		System.out.println("Printing from the NewsTool: " + res.toString());
-		
-		
-		
-		
-		
-		return res.toString();
+	    List<Article> articles = newsFetchService.fetchNews(query);
+	    
+	    if(articles.isEmpty()) 
+	    {
+	        return Map.of(
+	            "success", false,
+	            "message", "No news articles found for: " + query
+	        );
+	    }
+	    
+	    // Return structured data
+	    List<Map<String, String>> articleList = articles.stream()
+	        .limit(5)
+	        .map(article -> Map.of(
+	            "title", article.getTitle(),
+	            "description", article.getDescription(),
+	            "url", article.getUrl()
+	        ))
+	        .toList();
+	    
+	    return Map.of(
+	        "success", true,
+	        "topic", query,
+	        "articles", articleList,
+	        "count", articleList.size()
+	    );
 	}
 }
 
