@@ -2,9 +2,7 @@ package com.IntelliMate.core.service.GoogleOAuth;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
@@ -17,6 +15,9 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
+
+import jakarta.annotation.PostConstruct;
+
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,9 +48,13 @@ public class GoogleOAuthService
 	
 	
 	
-	public GoogleOAuthService() throws IOException, GeneralSecurityException
+	public GoogleOAuthService() {}
+	
+	// Initialize the service
+	@PostConstruct
+	public void init() throws IOException, GeneralSecurityException
 	{
-        this.httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+		this.httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         
         // Initialize jsonFactory
         this.jsonFactory = GsonFactory.getDefaultInstance();
@@ -76,7 +81,7 @@ public class GoogleOAuthService
         .setDataStoreFactory(new FileDataStoreFactory(new File(TOKENS_DIRECTORY_PATH)))
         .setAccessType("offline")
         .build();
-    }
+	}
 	
 	// Helper method to load client_secret.json
     private GoogleClientSecrets loadClientSecrets() throws IOException 

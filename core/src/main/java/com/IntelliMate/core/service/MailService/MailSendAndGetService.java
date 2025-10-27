@@ -11,6 +11,9 @@ import com.google.api.services.gmail.model.Message;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.InternetAddress;
+import com.google.api.services.gmail.model.ListMessagesResponse;
+import java.util.List;
+import java.util.ArrayList;
 import jakarta.mail.MessagingException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -21,27 +24,72 @@ import java.util.Properties;
 
 
 @Service
-public class MailSendService
+public class MailSendAndGetService
 {
-    @Autowired
-    private GoogleOAuthService googleOAuthService;
-
+    private final GoogleOAuthService googleOAuthService;
+    
+    
+    
+    public MailSendAndGetService(GoogleOAuthService googleOAuthService) 
+	{
+		this.googleOAuthService = googleOAuthService;
+	}
+    
+    
+    // Send email method
     public String sendMail(String userID, String to, String subject, String body) 
         throws IOException, MessagingException 
     {
-        Gmail service = getGmailService(userID);
-        
-        // Create email using Jakarta Mail
-        MimeMessage email = createEmail(to, "me", subject, body);
-        
-        // Convert MimeMessage to Gmail Message
-        Message message = createMessageWithEmail(email);
-        
-        // Send email
-        message = service.users().messages().send("me", message).execute();
-        
-        return "Email sent successfully with ID: " + message.getId();
+    	try
+    	{
+    		Gmail service = getGmailService(userID);
+            
+            // Create email using Jakarta Mail
+            MimeMessage email = createEmail(to, "me", subject, body);
+            
+            // Convert MimeMessage to Gmail Message
+            Message message = createMessageWithEmail(email);
+            
+            // Send email
+            message = service.users().messages().send("me", message).execute();
+            
+            return "Email sent successfully with ID: " + message.getId() + " to " + to;
+    	}
+    	
+    	catch(Exception e)
+		{
+			return "Failed to send email: " + e.getMessage();
+		}
     }
+    
+    
+    // Retrieve emails method
+    public List<Message> getEmails(String userId, int maxResults) throws IOException 
+    {
+    	// Get Gmail service
+    	Gmail service = getGmailService(userId);
+    	
+    	// Set up request to list messages
+    	ListMessagesResponse response = service.users().messages()
+    	    .list("me")
+    	    .setMaxResults((long) maxResults)
+    	    .execute();
+    	    
+    	List<Message> fullMessages = new ArrayList<>();
+    	
+    	// Fetch full message details for each message
+    	for(Message message : response.getMessages()) 
+    	{
+    		// Get full message details
+    	    Message fullMessage = service.users().messages().get("me", message.getId()).execute();
+    	    
+    	    // Add to the list
+    	    fullMessages.add(fullMessage);
+    	}
+    	    
+    	return fullMessages; 
+    } 
+    
     
     // Create email using Jakarta Mail
     private MimeMessage createEmail(String to, String from, String subject, String bodyText) 
@@ -59,6 +107,7 @@ public class MailSendService
         return email;
     }
     
+    
     // Convert MimeMessage to Gmail Message
     private Message createMessageWithEmail(MimeMessage emailContent) 
         throws MessagingException, IOException 
@@ -73,6 +122,7 @@ public class MailSendService
         
         return message;
     }
+    
     
     // Helper method to get Gmail service
     private Gmail getGmailService(String userId) throws IOException 

@@ -4,6 +4,7 @@ import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import com.IntelliMate.core.tools.MailTool;
 import com.IntelliMate.core.tools.NewsTool;
 import org.springframework.stereotype.Service;
 
@@ -51,6 +52,47 @@ public class AIEngine
 			
 			2. **[Title from articles[1]]**
 			   ..."
+			   
+			TOOL OUTPUT HANDLING - EMAIL:
+			When handling email operations:
+			
+			FOR SENDING EMAILS:
+			- Always confirm the action after sending: "✓ Email sent successfully to [recipient]"
+			- Include the message ID if available
+			- If sending fails, explain the error clearly and suggest fixes
+			
+			FOR READING/LISTING EMAILS:
+			- Present emails in a clear, scannable format
+			- Show: From, Subject, Date/Time, Snippet/Preview
+			- Number the emails for easy reference (1, 2, 3...)
+			- If user asks about "recent emails" without specifying count, show 5-10 by default
+			
+			FOR COMPOSING/DRAFTING:
+			- Before sending, confirm details with user: To, Subject, Body preview
+			- Ask: "Would you like me to send this email now?"
+			- If any field is missing (recipient/subject/body), ask the user to provide it
+			
+			EMAIL RESPONSE FORMAT:
+			When listing emails:
+			"Here are your recent emails:
+			
+			1. 📧 From: [sender@email.com]
+			   Subject: [Subject line]
+			   Date: [date]
+			   Preview: [snippet]
+			
+			2. 📧 From: [sender2@email.com]
+			   ..."
+			
+			When sending confirmation:
+			"✓ Email sent successfully!
+			To: [recipient]
+			Subject: [subject]"
+			
+			EMAIL CLARIFICATIONS:
+			- If recipient is ambiguous (e.g., "send to John"), ask: "Which email address for John?"
+			- If subject/body is missing, prompt the user to provide them
+			- Always use clear, professional language in drafted emails unless user specifies a tone
 			
 			CRITICAL: Always present ALL articles from the "articles" array - never filter or omit any.
 			
@@ -61,11 +103,11 @@ public class AIEngine
 
     private final Assistant assistant;
 
-    public AIEngine(ChatLanguageModel chatModel, NewsTool newsTool) 
+    public AIEngine(ChatLanguageModel chatModel, NewsTool newsTool, MailTool mailTool) 
     {
         this.assistant = AiServices.builder(Assistant.class) // 1. Define the assistant interface
                 .chatLanguageModel(chatModel) // 2. Provide the language model
-                .tools(newsTool) // 3. Register the tools
+                .tools(mailTool, newsTool) // 3. Register the tools
                 .chatMemory(MessageWindowChatMemory.withMaxMessages(10)) // 4. Set up chat memory
                 .build();
     }
