@@ -9,12 +9,14 @@ import com.google.api.services.people.v1.model.EmailAddress;
 import com.google.api.services.people.v1.model.Name;
 import com.google.api.services.people.v1.model.ListConnectionsResponse;
 import com.google.api.services.people.v1.model.Person;
+import com.google.api.services.people.v1.model.SearchResponse;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.json.gson.GsonFactory;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import com.IntelliMate.core.repository.ContactInfo;
+import com.google.api.services.people.v1.model.SearchResult;
 
 
 
@@ -63,6 +65,31 @@ public class GooglePeopleService
         }
         
         return contacts;
+    }
+    
+    // Get email for a contact name
+    public String getEmailByName(String userId, String name) throws IOException 
+    {
+    	PeopleService service = getPeopleService(userId);
+        
+        // Direct search API
+        SearchResponse response = service.people().searchContacts()
+            .setQuery(name)
+            .setReadMask("names,emailAddresses")
+            .execute();
+        
+        List<SearchResult> results = response.getResults();
+        
+        if(results == null || results.isEmpty()) 
+        {
+            return null; // No contact found
+        }
+        
+        // Get first match
+        Person person = results.get(0).getPerson();
+    	
+        ContactInfo contact = extractContactInfo(person);
+        return contact != null ? contact.getEmail() : null;
     }
     
     // Helper: Extract contact info from Person object
