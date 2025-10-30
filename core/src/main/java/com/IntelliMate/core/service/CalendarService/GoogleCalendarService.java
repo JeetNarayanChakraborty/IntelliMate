@@ -9,15 +9,23 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
+import com.google.api.services.calendar.model.FreeBusyCalendar;
+import com.google.api.services.calendar.model.FreeBusyRequest;
+import com.google.api.services.calendar.model.FreeBusyRequestItem;
+import com.google.api.services.calendar.model.FreeBusyResponse;
+import com.google.api.services.calendar.model.TimePeriod;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.util.DateTime;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
 
 
@@ -135,19 +143,118 @@ public class GoogleCalendarService
 		}
 	}
 	
+	// Check free/busy status for multiple attendees within a time range
+	public FreeBusyResponse checkFreeBusy(String userID, List<String> attendeeEmails, 
+            String startDateTime, String endDateTime) throws IOException
+	{
+		// Initialize Calendar service
+	    Calendar service = getGoogleCalenderService(userID);
+	    
+	    try 
+	    {
+	        // Directly use the formatted strings from LLM
+	        DateTime timeMin = DateTime.parseRfc3339(startDateTime);
+	        DateTime timeMax = DateTime.parseRfc3339(endDateTime);
+	        
+	        // Create FreeBusyRequestItem for each attendee email
+	        List<FreeBusyRequestItem> items = new ArrayList<>();
+	        for (String email : attendeeEmails) 
+	        {
+	            FreeBusyRequestItem item = new FreeBusyRequestItem();
+	            item.setId(email);
+	            items.add(item);
+	        }
+	        
+	        // Build the FreeBusy request
+	        FreeBusyRequest request = new FreeBusyRequest();
+	        request.setTimeMin(timeMin); // Set start time
+	        request.setTimeMax(timeMax); // Set end time
+	        request.setItems(items); // Set attendees
+	        
+	        // Execute the query
+	        FreeBusyResponse response = service.freebusy().query(request).execute();
+	        
+	        return response;
+	    } 
+	    
+	    catch(Exception e) 
+	    {
+	        throw new IOException("Failed to check free/busy status: " + e.getMessage(), e);
+	    }
+	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	// Get next available time slots for multiple attendees
+	private List<DateTime> getNextAvailableSlots(String userID, List<String> attendeeEmails, int slotDurationInMinutes)
+	{	
+		// Get start time (current time)
+		String startTime = ZonedDateTime.now().
+				           format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 
+		// Get end time (current time + duration in minutes)
+		String endTime = ZonedDateTime.now().plusMinutes(slotDurationInMinutes).
+				                             format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+		
+		List<DateTime> availableSlots = new ArrayList<>();
+		
+		// Loop and find all available slots until the end of the day
+		while(ZonedDateTime.parse(endTime).toLocalTime().getHour() <= 23 && 
+			  ZonedDateTime.parse(endTime).toLocalTime().getMinute() <= 59)
+		{
+			try
+			{
+				Map<String, FreeBusyCalendar> calendars = checkFreeBusy(userID, attendeeEmails, startTime, endTime).getCalendars();
+				
+				for(String email : attendeeEmails) 
+				{
+					// Get the calendar for each attendee
+				    FreeBusyCalendar calendar = calendars.get(email);
+				     
+				    // Check for busy times by checking if the busy list is not empty
+				    if(calendar != null) 
+				    {
+				    	// Get busy times
+				        List<TimePeriod> busyTimes = calendar.getBusy();
+				            
+				        // If the busy times list is not empty for any one of the attendees, move to the next slot
+				        if(busyTimes != null && !busyTimes.isEmpty()) 
+				        {
+				        	startTime = endTime;
+				        	endTime = ZonedDateTime.parse(endTime).plusMinutes(slotDurationInMinutes).
+				        			 				format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+				        	
+				            continue; // Check next slot
+				        }
+				    }
+				}
+				 
+				// If no busy times found for any attendee, add to available slots
+				availableSlots.add(DateTime.parseRfc3339(startTime));
+			}
+			
+			catch(IOException e)
+			{
+				e.printStackTrace();
+			}	
+		}
+		
+		return availableSlots;
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
