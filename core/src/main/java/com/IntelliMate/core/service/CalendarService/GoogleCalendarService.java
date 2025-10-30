@@ -105,8 +105,8 @@ public class GoogleCalendarService
 	}
 	
 	
-	// Get all calendar events for a specific day for a user
-	public List<Event> getEventsForWeek(String userId, String date) throws IOException 
+	// Get all calendar events for current week for a user
+	public List<Event> getEventsForWeek(String userId) throws IOException 
 	{
 		Calendar service = getGoogleCalenderService(userId);
 		    
@@ -119,7 +119,7 @@ public class GoogleCalendarService
 		    DateTime timeMin = new DateTime(Date.from(mondayStartOfDay.atZone(ZoneId.systemDefault()).toInstant()));
 		        
 		    // Sunday End of the day (23:59:59)
-		    LocalDateTime sundayEndOfDay = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+		    LocalDateTime sundayEndOfDay = LocalDate.now().with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
 		    							   .atTime(23, 59, 59);
 		    // Convert to DateTime
 		    DateTime timeMax = new DateTime(Date.from(sundayEndOfDay.atZone(ZoneId.systemDefault()).toInstant()));
@@ -184,7 +184,7 @@ public class GoogleCalendarService
 	}
 	
 	// Get next available time slots for multiple attendees
-	private List<DateTime> getNextAvailableSlots(String userID, List<String> attendeeEmails, int slotDurationInMinutes)
+	public List<DateTime> getNextAvailableSlots(String userID, List<String> attendeeEmails, int slotDurationInMinutes)
 	{	
 		// Get start time (current time)
 		String startTime = ZonedDateTime.now().
