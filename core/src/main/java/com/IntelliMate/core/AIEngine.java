@@ -4,6 +4,7 @@ import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import com.IntelliMate.core.tools.CalendarTool;
 import com.IntelliMate.core.tools.MailTool;
 import com.IntelliMate.core.tools.NewsTool;
 import org.springframework.stereotype.Service;
@@ -94,20 +95,87 @@ public class AIEngine
 			- If subject/body is missing, prompt the user to provide them
 			- Always use clear, professional language in drafted emails unless user specifies a tone
 			
-			CRITICAL: Always present ALL articles from the "articles" array - never filter or omit any.
 			
-			For Calendar and Email tools, follow similar principles: extract structured data and format it clearly for the user.
+			TOOL OUTPUT HANDLING - CALENDAR:
+			When handling calendar operations:
+			
+			FOR VIEWING EVENTS:
+			- Present ALL events returned from the tool (daily, weekly, or date-specific queries)
+			- Format each event clearly with: Date, Time, Title, Location (if available), Attendees (if any)
+			- Number events for easy reference when there are multiple
+			- Use user's timezone context (Asia/Kolkata, UTC+5:30) for time display
+			- If no events found, say: "Your calendar is clear for [timeframe]"
+			
+			FOR CREATING EVENTS:
+			- Before creating, confirm details with user: Date, Time, Title, Duration, Attendees (optional), Location (optional)
+			- If any critical field is missing (date/time/title), ask the user to provide it
+			- After successful creation, confirm: "✓ Event created: [title] on [date] at [time]"
+			- Include meeting link if generated (Google Meet)
+			
+			FOR UPDATING EVENTS:
+			- If multiple events match user's description, list them and ask: "Which event would you like to update?"
+			- Confirm changes before applying: "Update [event] to [new details]?"
+			- After update, confirm: "✓ Event updated successfully"
+			
+			FOR DELETING EVENTS:
+			- If multiple events match, ask for clarification
+			- Confirm before deleting: "Are you sure you want to delete [event title] on [date]?"
+			- After deletion, confirm: "✓ Event deleted from your calendar"
+			
+			CALENDAR RESPONSE FORMAT:
+			When listing events (daily/weekly):
+			"Here are your events for [timeframe]:
+			
+			📅 [Day, Date]
+			1. 🕒 [Start Time] - [End Time]
+			   **[Event Title]**
+			   📍 Location: [location if available]
+			   👥 Attendees: [attendees if any]
+			
+			2. 🕒 [Start Time] - [End Time]
+			   **[Event Title]**
+			   ..."
+			
+			When creating event confirmation:
+			"✓ Event created successfully!
+			Title: [title]
+			Date: [date]
+			Time: [start] - [end]
+			Location: [location if provided]
+			Attendees: [attendees if provided]"
+			
+			CALENDAR CLARIFICATIONS:
+			- If date is ambiguous (e.g., "next week"), ask: "Which day next week?"
+			- If time is missing, ask: "What time should I schedule this?"
+			- If duration is unclear, ask: "How long should this meeting be?" or assume 1 hour
+			- For recurring events, ask: "Should this repeat? (daily/weekly/monthly)"
+			- If attendee email is partial (e.g., "invite John"), ask: "What's John's email address?"
+			- Always confirm timezone if user mentions times without context
+			
+			EVENT OBJECT STRUCTURE:
+			Calendar tools return events with:
+			- id: Unique event identifier (string)
+			- summary: Event title (string)
+			- description: Event details (string, optional)
+			- start: ISO 8601 datetime (e.g., "2025-11-01T10:00:00+05:30")
+			- end: ISO 8601 datetime
+			- location: Physical/virtual location (string, optional)
+			- attendees: Array of email addresses (string[], optional)
+			- status: confirmed/tentative/cancelled (string)
+						
+			CRITICAL: Extract structured data and format it clearly for the user. 
+			Always confirm actions before making changes.
             """)
         String chat(String userMessage);
     }
 
     private final Assistant assistant;
 
-    public AIEngine(ChatLanguageModel chatModel, NewsTool newsTool, MailTool mailTool) 
+    public AIEngine(ChatLanguageModel chatModel, CalendarTool calendarTool, MailTool mailTool, NewsTool newsTool) 
     {
         this.assistant = AiServices.builder(Assistant.class) // 1. Define the assistant interface
                 .chatLanguageModel(chatModel) // 2. Provide the language model
-                .tools(mailTool, newsTool) // 3. Register the tools
+                .tools(mailTool, calendarTool, newsTool) // 3. Register the tools
                 .chatMemory(MessageWindowChatMemory.withMaxMessages(10)) // 4. Set up chat memory
                 .build();
     }
