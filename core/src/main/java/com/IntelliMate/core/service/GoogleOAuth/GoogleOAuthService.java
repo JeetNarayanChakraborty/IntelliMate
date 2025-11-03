@@ -6,12 +6,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
@@ -19,9 +21,13 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import jakarta.annotation.PostConstruct;
 import com.IntelliMate.core.repository.GoogleUserTokenRepo;
 import com.IntelliMate.core.repository.GoogleAuthUserToken;
+import com.google.api.client.auth.oauth2.BearerToken;
+import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponse;
 import org.springframework.beans.factory.annotation.Value;
+import java.time.ZoneId;
+
 
 
 
@@ -48,7 +54,12 @@ public class GoogleOAuthService
 	private String TOKENS_DIRECTORY_PATH = "tokens";
 	
 	// Repository to manage user tokens
-	GoogleUserTokenRepo GoogleUserTokenRepo;
+	private GoogleUserTokenRepo GoogleUserTokenRepo;
+	
+	// Client secrets loaded from file
+	private GoogleClientSecrets clientSecrets;
+	
+	
 	
 	
 	
@@ -72,7 +83,7 @@ public class GoogleOAuthService
         );
         
         // Load client secrets from file
-        GoogleClientSecrets clientSecrets = loadClientSecrets();
+        this.clientSecrets = loadClientSecrets();
         
         // Build the flow
         this.flow = new GoogleAuthorizationCodeFlow.Builder(
@@ -105,54 +116,131 @@ public class GoogleOAuthService
     }
     
     // Method to exchange user authorization code for tokens
-    public void exchangeCodeForTokens(String code, Long userID) throws IOException 
+    public void exchangeCodeForTokens(String Authcode) throws IOException 
     {
     	GoogleAuthUserToken userToken = new GoogleAuthUserToken();
     	
     	// Exchange authorization code for tokens
-        TokenResponse tokenResponse = flow.newTokenRequest(code)
+        TokenResponse tokenResponse = flow.newTokenRequest(Authcode)
             .setRedirectUri("http://localhost:8080/oauth2/callback")
             .execute();
         
-        // Check if user token already exists
-        if(GoogleUserTokenRepo.existsByUserId(userID))
-        {
-        	userToken = GoogleUserTokenRepo.findByUserId(userID);
-		}
-		 	        
-        // Store tokens in the database
-        userToken.setAccessToken(tokenResponse.getAccessToken());
-        userToken.setRefreshToken(tokenResponse.getRefreshToken());
-        userToken.setTokenExpiry(LocalDateTime.now().plusSeconds(tokenResponse.getExpiresInSeconds()));
-        userToken.setCreatedAt(LocalDateTime.now());
-		userToken.setUpdatedAt(LocalDateTime.now());
         
-        GoogleUserTokenRepo.save(userToken);
+        String refreshToken = tokenResponse.getRefreshToken();
+        
+        // Check if user token already exists
+        if(GoogleUserTokenRepo.existsByRefreshToken(refreshToken))
+        {
+        	userToken = GoogleUserTokenRepo.findByRefreshToken(refreshToken);
+        	
+        	// Update existing token
+        	userToken.setAccessToken(tokenResponse.getAccessToken());
+        	userToken.setTokenExpiry(LocalDateTime.now().plusSeconds(tokenResponse.getExpiresInSeconds()));
+        	userToken.setUpdatedAt(LocalDateTime.now());
+        	
+        	GoogleUserTokenRepo.save(userToken);
+		}
+        
+        else
+        {
+        	// Store new token in the database
+            userToken.setAccessToken(tokenResponse.getAccessToken());
+            userToken.setRefreshToken(tokenResponse.getRefreshToken());
+            userToken.setTokenExpiry(LocalDateTime.now().plusSeconds(tokenResponse.getExpiresInSeconds()));
+            userToken.setCreatedAt(LocalDateTime.now());
+    		userToken.setUpdatedAt(LocalDateTime.now());
+            
+            GoogleUserTokenRepo.save(userToken);        	
+        }       
     }
     
     
-    // Method to get stored credentials for a user
-    public Credential getStoredCredential(String userId) throws IOException 
+    // Method to get stored credential for a user
+    public Credential getStoredCredential(Long userID) throws IOException 
     {
-        // Load and return credential from the data store
-        // Token refresh is handled automatically when credential is used
-        return flow.loadCredential(userId);
+        GoogleAuthUserToken userToken = GoogleUserTokenRepo.findByUserId(userID);
+        		
+        if(userToken == null) throw new IOException("No token found for user ID: " + userID);
+        
+        // Check if token expired
+        if(userToken.getTokenExpiry().isBefore(LocalDateTime.now())) 
+        {
+        	// If expired, refresh the token
+            refreshAccessToken(userID);
+            
+            // Reload the updated token
+            userToken = GoogleUserTokenRepo.findByUserId(userID);
+            
+            if(userToken == null) throw new IOException("No token found for user ID after refresh: " + userID);
+        }
+        
+        // Build Credential using the information from userToken
+        Credential credential = new Credential.Builder(BearerToken.authorizationHeaderAccessMethod())
+            .setTransport(httpTransport)
+            .setJsonFactory(jsonFactory)
+            .setTokenServerUrl(new GenericUrl("https://oauth2.googleapis.com/token"))
+            .setClientAuthentication(new ClientParametersAuthentication(
+                clientSecrets.getDetails().getClientId(),
+                clientSecrets.getDetails().getClientSecret()))
+            .build();
+        
+        credential.setAccessToken(userToken.getAccessToken());
+        credential.setRefreshToken(userToken.getRefreshToken());
+        credential.setExpirationTimeMilliseconds(
+        userToken.getTokenExpiry().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        );
+        
+        return credential;
+    }
+    
+    // Refresh expired token
+    private void refreshAccessToken(Long userID) throws IOException 
+    {
+        
+    	GoogleAuthUserToken userToken = GoogleUserTokenRepo.findByUserId(userID);
+        		
+    	if(userToken == null) throw new IOException("No token found for user ID: " + userID);
+        
+        if(userToken.getRefreshToken() == null) throw new IOException("No refresh token. User needs to re-authenticate.");
+        
+        // Build Credential using the information from userToken
+        Credential credential = new Credential.Builder(BearerToken.authorizationHeaderAccessMethod())
+            .setTransport(httpTransport)
+            .setJsonFactory(jsonFactory)
+            .setTokenServerUrl(new GenericUrl("https://oauth2.googleapis.com/token"))
+            .setClientAuthentication(new ClientParametersAuthentication(
+                clientSecrets.getDetails().getClientId(),
+                clientSecrets.getDetails().getClientSecret()))
+            .build();
+        
+        // Fetch the new access token using the refresh token
+        credential.setRefreshToken(userToken.getRefreshToken());
+        credential.refreshToken();
+        
+        // Update the stored token in the database using the new token info
+        userToken.setAccessToken(credential.getAccessToken());
+        userToken.setTokenExpiry(LocalDateTime.now().plusSeconds(credential.getExpiresInSeconds()));
+        userToken.setUpdatedAt(LocalDateTime.now());
+        
+        // Save updated token
+        GoogleUserTokenRepo.save(userToken);
     }
 
     // Method to revoke user's access token
-    public void revokeAccess(String userId) throws IOException 
+    public void revokeAccess(Long userID) throws IOException 
     {
-        // Load the stored credential
-        Credential credential = flow.loadCredential(userId);
+        // Load the stored credential from DB
+    	GoogleAuthUserToken userToken = GoogleUserTokenRepo.existsByUserId(userID) ? GoogleUserTokenRepo.findByUserId(userID) : null;
         
-        if(credential != null && credential.getAccessToken() != null) 
+    	
+        if(userToken != null && userToken.getAccessToken() != null) 
         {
             try 
             {
                 // Revoke the token with Google's revocation endpoint
                 httpTransport.createRequestFactory()
                     	.buildGetRequest(new com.google.api.client.http.GenericUrl(
-                        "https://oauth2.googleapis.com/revoke?token=" + credential.getAccessToken()))
+                        "https://oauth2.googleapis.com/revoke?token=" + userToken.getAccessToken()))
                     	.execute();
             } 
             
@@ -161,12 +249,11 @@ public class GoogleOAuthService
             	System.err.println("Error revoking token with Google: " + e.getMessage());
             }
             
-            // Remove the stored credential from the data store
-            
+            // Remove the stored credential from the database
             finally
             {
             	// Delete the stored credentials locally
-	            flow.getCredentialDataStore().delete(userId);
+            	GoogleUserTokenRepo.deleteByUserId(userID);
             }
         }
     }
