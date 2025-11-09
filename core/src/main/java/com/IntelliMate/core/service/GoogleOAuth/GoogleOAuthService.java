@@ -26,7 +26,6 @@ import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponse;
 import org.springframework.beans.factory.annotation.Value;
-import java.time.ZoneId;
 
 
 
@@ -105,7 +104,7 @@ public class GoogleOAuthService
         return GoogleClientSecrets.load(jsonFactory, new InputStreamReader(fis));
     }
     
-    // Method to get the authorization url, afer this user gets option to "continue with google login"
+    // Method to get the authorization URL, after this user gets option to "continue with google login"
     public String getAuthorizationUrl() throws IOException 
     {
         return flow.newAuthorizationUrl()
@@ -116,7 +115,7 @@ public class GoogleOAuthService
     }
     
     // Method to exchange user authorization code for tokens
-    public void exchangeCodeForTokens(String Authcode) throws IOException 
+    public Long exchangeCodeForTokens(String Authcode) throws IOException 
     {
     	GoogleAuthUserToken userToken = new GoogleAuthUserToken();
     	
@@ -151,7 +150,10 @@ public class GoogleOAuthService
     		userToken.setUpdatedAt(LocalDateTime.now());
             
             GoogleUserTokenRepo.save(userToken);        	
-        }       
+        }
+        
+        // Return the user ID associated with this token
+        return userToken.getUserId();
     }
     
     
@@ -195,8 +197,7 @@ public class GoogleOAuthService
     
     // Refresh expired token
     private void refreshAccessToken(Long userID) throws IOException 
-    {
-        
+    {    
     	GoogleAuthUserToken userToken = GoogleUserTokenRepo.findByUserId(userID);
         		
     	if(userToken == null) throw new IOException("No token found for user ID: " + userID);

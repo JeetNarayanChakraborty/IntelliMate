@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IntelliMate</title>
+    <style>
+        * 
+        {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body 
+        {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .container 
+        {
+            display: flex;
+            flex-direction: column;
+            max-width: 1400px;
+            width: 100%;
+            height: 90vh;
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @keyframes slideUp 
+        {
+            from 
+            {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to 
+            {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Header Section */
+        .header 
+        {
+            background: linear-gradient(135deg, #1a3a52 0%, #2d5470 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            animation: fadeInDown 0.8s ease-out 0.2s backwards;
+        }
+
+        @keyframes fadeInDown 
+        {
+            from 
+            {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to 
+            {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header-left h1 
+        {
+            font-size: 28px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .user-info 
+        {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 400;
+        }
+
+        .header-right 
+        {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .logout-btn 
+        {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover 
+        {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Main Content Area */
+        .main-content 
+        {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Chat Container */
+        .chat-section 
+        {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f5f5f7;
+            animation: fadeInLeft 0.8s ease-out 0.4s backwards;
+        }
+
+        @keyframes fadeInLeft 
+        {
+            from 
+            {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+
+            to 
+            {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .chat-header 
+        {
+            padding: 20px 30px;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .chat-header h2 
+        {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .chat-messages 
+        {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .message 
+        {
+            margin-bottom: 20px;
+            display: flex;
+            animation: messageSlide 0.4s ease-out;
+        }
+
+        @keyframes messageSlide 
+        {
+            from 
+            {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to 
+            {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user 
+        {
+            justify-content: flex-end;
+        }
+
+        .message.ai 
+        {
+            justify-content: flex-start;
+        }
+
+        .message-content 
+        {
+            max-width: 70%;
+            padding: 14px 18px;
+            border-radius: 16px;
+            font-size: 15px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content 
+        {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .message.ai .message-content 
+        {
+            background: white;
+            color: #1a1a1a;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-time 
+        {
+            font-size: 11px;
+            color: #999;
+            margin-top: 6px;
+            padding: 0 4px;
+        }
+
+        /* Input Area */
+        .chat-input-container 
+        {
+            padding: 20px 30px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            animation: fadeInUp 0.8s ease-out 0.6s backwards;
+        }
+
+        @keyframes fadeInUp 
+        {
+            from 
+            {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to 
+            {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .input-wrapper 
+        {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        #messageInput 
+        {
+            flex: 1;
+            padding: 14px 18px;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 15px;
+            background: #fafafa;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        #messageInput:focus 
+        {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        #messageInput::placeholder 
+        {
+            color: #999;
+        }
+
+        #sendBtn 
+        {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #1a3a52 0%, #2d5470 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        #sendBtn:hover 
+        {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(26, 58, 82, 0.3);
+        }
+
+        #sendBtn:active 
+        {
+            transform: translateY(0);
+        }
+
+        #sendBtn:disabled 
+        {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #sendBtn.loading 
+        {
+            pointer-events: none;
+            position: relative;
+            color: transparent;
+        }
+
+        #sendBtn.loading::after 
+        {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            top: 50%;
+            left: 50%;
+            margin-left: -9px;
+            margin-top: -9px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin 
+        {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Sidebar */
+        .sidebar 
+        {
+            width: 320px;
+            background: white;
+            border-left: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            animation: fadeInRight 0.8s ease-out 0.4s backwards;
+        }
+
+        @keyframes fadeInRight 
+        {
+            from 
+            {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+
+            to 
+            {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .sidebar-header 
+        {
+            padding: 20px;
+            background: #f9f9f9;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .sidebar-header h3 
+        {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .sidebar-content 
+        {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .info-card 
+        {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover 
+        {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-card h4 
+        {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a3a52;
+            margin-bottom: 8px;
+        }
+
+        .info-card p 
+        {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        /* Welcome Message */
+        .welcome-message 
+        {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .welcome-message h3 
+        {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+
+        .welcome-message p 
+        {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Scrollbar Styling */
+        .chat-messages::-webkit-scrollbar,
+        .sidebar-content::-webkit-scrollbar 
+        {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track,
+        .sidebar-content::-webkit-scrollbar-track 
+        {
+            background: #f1f1f1;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb,
+        .sidebar-content::-webkit-scrollbar-thumb 
+        {
+            background: #ccc;
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover,
+        .sidebar-content::-webkit-scrollbar-thumb:hover 
+        {
+            background: #999;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) 
+        {
+            .sidebar 
+            {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) 
+        {
+            .container 
+            {
+                height: 100vh;
+                border-radius: 0;
+            }
+
+            .header 
+            {
+                padding: 16px 20px;
+            }
+
+            .header-left h1 
+            {
+                font-size: 22px;
+            }
+
+            .chat-messages 
+            {
+                padding: 20px;
+            }
+
+            .message-content 
+            {
+                max-width: 85%;
+            }
+
+            .chat-input-container 
+            {
+                padding: 16px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>IntelliMate Dashboard</h1>
+                <div class="user-info" id="userEmail">Loading user info...</div>
+            </div>
+            <div class="header-right">
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Chat Section -->
+            <div class="chat-section">
+                <div class="chat-header">
+                    <h2>AI Assistant</h2>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="welcome-message">
+                        <h3>Welcome to IntelliMate! 👋</h3>
+                        <p>I'm your AI assistant. I can help you manage your calendar, send emails, get news updates, and much more. How can I assist you today?</p>
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <div class="input-wrapper">
+                        <input 
+                            type="text" 
+                            id="messageInput" 
+                            placeholder="Type your message here..."
+                            autocomplete="off"
+                        />
+                        <button id="sendBtn" onclick="sendMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <h3>Quick Actions</h3>
+                </div>
+                <div class="sidebar-content">
+                    <div class="info-card">
+                        <h4>📅 Calendar</h4>
+                        <p>View your events, schedule meetings, and manage your calendar.</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>✉️ Email</h4>
+                        <p>Draft, send, and manage your emails efficiently.</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>📰 News</h4>
+                        <p>Get the latest news and updates on topics you care about.</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>🤖 AI Assistance</h4>
+                        <p>Ask me anything! I'm here to help with your daily tasks.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // AUTHENTICATION CHECK ON PAGE LOAD
+        // ============================================
+        window.addEventListener('DOMContentLoaded', function() 
+        {
+            const token = localStorage.getItem('authToken');
+            
+            if (!token) 
+            {
+                alert('Please log in first');
+                window.location.href = '/login.html';
+                return;
+            }
+        });
+
+        // ============================================
+        // SEND MESSAGE WITH JWT TOKEN
+        // ============================================
+        async function sendMessage() 
+        {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if(!message) return;
+            
+            // Display user message immediately
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Send to backend with JWT
+            await sendChatMessage(message);
+        }
+
+        async function sendChatMessage(message) 
+        {
+            const token = localStorage.getItem('authToken');
+            
+            if(!token) 
+            {
+                alert('Please log in first');
+                window.location.href = '/login.html';
+                return;
+            }
+            
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.classList.add('loading');
+            sendBtn.textContent = 'Sending...';
+            
+            try 
+            {
+                const response = await fetch('http://localhost:8080/api/chat', {
+                    method: 'POST',
+                    headers: 
+                    {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token  
+                    },
+                    body: JSON.stringify({
+                        message: message
+                    })
+                });
+                
+                // Check if unauthorized (token expired/invalid)
+                if(response.status === 401) 
+                {
+                    alert('Your session has expired. Please log in again.');
+                    localStorage.removeItem('authToken');
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                // Check for other errors
+                if (!response.ok) 
+                {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Display AI response
+                if (data.response) 
+                {
+                    addMessage(data.response, 'ai');
+                }
+
+                else if(data.error) 
+                {
+                    addMessage('Error: ' + data.error, 'ai');
+                } 
+
+                else 
+                {
+                    addMessage('Received empty response from server.', 'ai');
+                }
+                
+            } 
+
+            catch(error) 
+            {
+                console.error('Error sending message:', error);
+                addMessage('Sorry, something went wrong. Please try again.', 'ai');
+                
+                // If it's a network error, might indicate server is down
+                if(error.message.includes('Failed to fetch')) {
+                    addMessage('Unable to connect to server. Please check your connection.', 'ai');
+                }
+
+            } 
+
+            finally 
+            {
+                sendBtn.disabled = false;
+                sendBtn.classList.remove('loading');
+                sendBtn.textContent = 'Send';
+            }
+        }
+
+        // ============================================
+        // ADD MESSAGE TO CHAT UI
+        // ============================================
+        function addMessage(text, sender) 
+        {
+            const messagesContainer = document.getElementById('chatMessages');
+            const welcomeMessage = messagesContainer.querySelector('.welcome-message');
+            
+            // Remove welcome message on first interaction
+            if(welcomeMessage) 
+            {
+                welcomeMessage.remove();
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = text;
+            
+            messageDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom smoothly
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // ============================================
+        // LOGOUT FUNCTION
+        // ============================================
+        function logout() 
+        {
+            if (confirm('Are you sure you want to logout?')) 
+            {
+                localStorage.removeItem('authToken');
+                window.location.href = '/login.html';
+            }
+        }
+
+        // ============================================
+        // KEYBOARD SHORTCUT (ENTER TO SEND)
+        // ============================================
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if(e.key === 'Enter' && !e.shiftKey) 
+            {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // ============================================
+        // AUTO-FOCUS INPUT ON LOAD
+        // ============================================
+        window.addEventListener('load', function() 
+        {
+            document.getElementById('messageInput').focus();
+        });
+    </script>
+</body>
+</html>

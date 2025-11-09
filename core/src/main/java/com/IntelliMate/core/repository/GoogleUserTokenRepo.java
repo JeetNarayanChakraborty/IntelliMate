@@ -12,9 +12,8 @@ public interface GoogleUserTokenRepo extends JpaRepository<GoogleAuthUserToken, 
 	@Query(value = "SELECT * FROM google_auth_user_token WHERE refresh_token = :refreshToken", nativeQuery = true)
 	GoogleAuthUserToken findByRefreshToken(String refreshToken);
 	
-	
-	//TODO: Implement to existsByRefreshToken
-	
+	@Query(value = "SELECT EXISTS(SELECT 1 FROM google_auth_user_token WHERE refresh_token = :refreshToken)", nativeQuery = true)
+	boolean existsByRefreshToken(String refreshToken);
 	
 	GoogleAuthUserToken findByUserId(Long userId);
 	boolean existsByUserId(Long userId);

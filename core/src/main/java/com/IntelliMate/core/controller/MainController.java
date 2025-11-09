@@ -6,8 +6,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.http.ResponseEntity;
-
+import com.IntelliMate.core.service.JWTService.JWTTokenService;
 import java.io.IOException;
 import java.util.Map;
 import com.IntelliMate.core.AIEngine;
@@ -21,13 +22,14 @@ public class MainController
 {
 	private final AIEngine aiEngine;
 	private final GoogleOAuthService googleOAuthService;
+	private final JWTTokenService jwtTokenService;
 	
 	
-	
-	public MainController(AIEngine aiEngine, GoogleOAuthService googleOAuthService) 
+	public MainController(AIEngine aiEngine, GoogleOAuthService googleOAuthService, JWTTokenService jwtTokenService) 
 	{
 		this.aiEngine = aiEngine;
 		this.googleOAuthService = googleOAuthService;
+		this.jwtTokenService = jwtTokenService;
 	}
 	
 	
@@ -57,12 +59,14 @@ public class MainController
     {
         try 
         {
-            // Exchange authorization code for tokens and get user email
-            String userEmail = googleOAuthService.exchangeCodeForTokens(code, );
+            // Exchange authorization code for tokens and get user ID
+            Long userID = googleOAuthService.exchangeCodeForTokens(code);
             
-            // Tokens are now saved in database
-            // Redirect to frontend dashboard with user info
-            String redirectUrl = "http://localhost:3000/dashboard?email=" + userEmail + "&status=success";
+            // Generate JWT token
+            String jwtToken = jwtTokenService.generateToken(userID);
+            
+            // Redirect to dashboard with JWT token
+            String redirectUrl = "http://localhost:3000/dashboard?token=" + jwtToken + "&status=success";
             
             return ResponseEntity.status(302)
                 .header("Location", redirectUrl)
@@ -83,10 +87,31 @@ public class MainController
 	
 	
 	@PostMapping("/chat")
-	public ResponseEntity<Map<String, String>> chat (@RequestBody String query) 
+	public ResponseEntity<Map<String, String>> chat(@RequestBody Map<String, String> request, 
+			                                        @RequestHeader(value = "Authorization", required = false) String authHeader) 
 	{
-		String userMessage = query;
+		// Validate JWT token
+		if(authHeader == null || !authHeader.startsWith("Bearer "))
+		{
+			return ResponseEntity.status(401).body(Map.of("error", "Missing or invalid Authorization header"));
+		}
+		
+		// Extract token
+		String token = authHeader.replace("Bearer ", "");
+		
+		// Validate if token is valid
+		if(!jwtTokenService.isValid(token))
+		{
+			return ResponseEntity.status(401).body(Map.of("error", "Invalid token"));
+		}
+		
+		// Get user ID from token to pass to LLM which will pass it to tools
+		String userID = jwtTokenService.extractUserID(token);
+		
+		// Get user message
+		String userMessage = request.get("message");
 
+		// Validate message
 		if(userMessage == null || userMessage.trim().isEmpty()) 
 		{
 			return ResponseEntity.badRequest().body(Map.of("error", "Message cannot be empty"));
@@ -94,20 +119,14 @@ public class MainController
 		
 		try
 		{
-			String AIResponse = aiEngine.chat(userMessage);
-			
-			
-			
-			System.out.println("AIResponse from Main controller: " + AIResponse);
-			
-			
-			
-			
+			// Send message and get AI response
+			String AIResponse = aiEngine.chat(userMessage, Map.of("userID", userID));
 			return ResponseEntity.ok(Map.of("response", AIResponse));
 		}
 		
 		catch(Exception e)
 		{
+			// Handle any unexpected errors
 			return ResponseEntity.status(500).body(Map.of("error", "Internal server error: " + e.getMessage()));
 		}
 	}
