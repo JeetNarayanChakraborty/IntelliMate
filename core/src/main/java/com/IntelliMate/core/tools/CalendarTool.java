@@ -18,6 +18,7 @@ import dev.langchain4j.agent.tool.Tool;
 public class CalendarTool 
 {
 	private GoogleCalendarService googleCalendarService;
+	private String userID;
 	
 	
 	
@@ -26,13 +27,19 @@ public class CalendarTool
 		this.googleCalendarService = googleCalendarService;
 	}
 	
+	public void init(String userID)
+	{
+		this.userID = userID;
+	}
+	
+	
 	// Tool to check availability of users
 	@Tool(name = "Checks if a user or a list of users are available during a specified time range",
 			   value = "Checks if a user or a list of users are available during a specified time range. " +
 	           "Returns true if all users are available, false if any user is busy. " +
 	           "Use this when user asks about 'are they free', 'is everyone available', 'check availability', or 'schedule meeting'. "
 	           + "or anything related to checking availability")
-	private boolean checkAvailability(String userID, String startTime, String endTime, List<String> attendeeEmails)
+	private boolean checkAvailability(String startTime, String endTime, List<String> attendeeEmails)
 	{
 		try
 		{
@@ -77,7 +84,7 @@ public class CalendarTool
 	           "location (string), attendees (list of email strings), status (string). " +
 	           "Use this when user asks about 'today', 'today's schedule', 'what's on my calendar today', or 'today's meetings'. "
 	           + "or anything related to the current day" + "Returns empty list if no events found.")
-	private List<Event> getTodaysEvents(String userID, String date)
+	private List<Event> getTodaysEvents(String date)
 	{
 		try
 		{
@@ -99,7 +106,7 @@ public class CalendarTool
 	           "location (string), attendees (list of email strings), status (string). " +
 	           "Use this when user asks about 'this week', 'weekly schedule', 'what's coming up', or 'week's meetings'. "
 	           + "or anything related to the current week" + "Returns empty list if no events found.")
-	private List<Event> getWeeksEvents(String userID, String weekStartDate, String weekEndDate)
+	private List<Event> getWeeksEvents(String weekStartDate, String weekEndDate)
 	{
 		try
 		{
@@ -119,7 +126,7 @@ public class CalendarTool
 	           "Returns a list of available time slots as ISO 8601 datetime objects. " +
 	           "Use this when user asks about 'find me a time', 'available slots', 'schedule a meeting', or 'free time'. "
 	           + "or anything related to finding free time slots")
-	private List<DateTime> findAvailableTimeSlots(String userID, List<String> attendeeEmails, int slotDurationInMinutes)
+	private List<DateTime> findAvailableTimeSlots(List<String> attendeeEmails, int slotDurationInMinutes)
 	{
 		return googleCalendarService.getNextAvailableSlots(userID, attendeeEmails, slotDurationInMinutes);
 	}

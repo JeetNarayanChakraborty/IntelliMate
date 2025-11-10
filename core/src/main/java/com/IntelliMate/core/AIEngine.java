@@ -7,6 +7,7 @@ import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import com.IntelliMate.core.tools.CalendarTool;
 import com.IntelliMate.core.tools.MailTool;
 import com.IntelliMate.core.tools.NewsTool;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 
 
@@ -169,19 +170,37 @@ public class AIEngine
         String chat(String userMessage);
     }
 
-    private final Assistant assistant;
+    private Assistant assistant;
+    private final CalendarTool calendarTool;  // injected by Spring
+    private final MailTool mailTool;
+    private final NewsTool newsTool;
+    private final ChatLanguageModel chatModel;
 
+  
+    
     public AIEngine(ChatLanguageModel chatModel, CalendarTool calendarTool, MailTool mailTool, NewsTool newsTool) 
     {
-        this.assistant = AiServices.builder(Assistant.class) // 1. Define the assistant interface
-                .chatLanguageModel(chatModel) // 2. Provide the language model
-                .tools(mailTool, calendarTool, newsTool) // 3. Register the tools
-                .chatMemory(MessageWindowChatMemory.withMaxMessages(10)) // 4. Set up chat memory
-                .build();
+    	this.assistant = null;
+		this.calendarTool = calendarTool;
+    	this.mailTool = mailTool;
+    	this.newsTool = newsTool;
+    	this.chatModel = chatModel;
     }
 
-    public String chat(String message) 
+    public String chat(String message, Map<String, Object> context) 
     {
+    	String userID = (String)context.get("userID");
+    	
+    	calendarTool.init(userID);
+        mailTool.init(userID);
+        
+    	
+    	this.assistant = AiServices.builder(Assistant.class) // 1. Define the assistant interface
+                .chatLanguageModel(chatModel) // 2. Provide the language model
+                .tools(calendarTool, mailTool, newsTool) // 3. Register the tools
+                .chatMemory(MessageWindowChatMemory.withMaxMessages(10)) // 4. Set up chat memory
+                .build();
+    	
         return assistant.chat(message); // Start chatting!
     }
 }

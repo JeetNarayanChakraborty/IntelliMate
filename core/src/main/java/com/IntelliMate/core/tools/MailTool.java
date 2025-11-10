@@ -14,15 +14,21 @@ import com.google.api.services.gmail.model.Message;
 public class MailTool 
 {
 	private MailSendAndGetService mailSendService;
+	private String userID;
 	
 	
 	public MailTool(MailSendAndGetService mailSendService)
 	{
 		this.mailSendService = mailSendService;
 	}
+	
+	public void init(String userID)
+	{
+		this.userID = userID;
+	}
 
 	@Tool("Sends an email to specified recipients")
-	public List<String> sendEmail(String userID, List<String> to, String subject, String body)
+	public List<String> sendEmail(List<String> to, String subject, String body)
 	{
 		List<String> emails = new ArrayList<>();
 		
@@ -46,7 +52,7 @@ public class MailTool
 	}
 	
 	@Tool("Gets emails from the user's inbox")
-	public List<Message> getMails(String userID, int maxResults)
+	public List<Message> getMails(int maxResults)
 	{
 		try 
 		{
