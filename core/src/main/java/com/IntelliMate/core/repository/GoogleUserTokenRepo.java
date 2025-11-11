@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 
 @Repository
-public interface GoogleUserTokenRepo extends JpaRepository<GoogleAuthUserToken, Long>
+public interface GoogleUserTokenRepo extends JpaRepository<GoogleAuthUserToken, String>
 {
 	@Query(value = "SELECT * FROM google_auth_user_token WHERE refresh_token = :refreshToken", nativeQuery = true)
 	GoogleAuthUserToken findByRefreshToken(String refreshToken);
@@ -15,7 +15,7 @@ public interface GoogleUserTokenRepo extends JpaRepository<GoogleAuthUserToken, 
 	@Query(value = "SELECT EXISTS(SELECT 1 FROM google_auth_user_token WHERE refresh_token = :refreshToken)", nativeQuery = true)
 	boolean existsByRefreshToken(String refreshToken);
 	
-	GoogleAuthUserToken findByUserId(Long userId);
-	boolean existsByUserId(Long userId);
-	void deleteByUserId(Long userId);
+	GoogleAuthUserToken findByUserId(String userId);
+	boolean existsByUserId(String userId);
+	void deleteByUserId(String userId);
 }

@@ -17,7 +17,7 @@ public class GoogleAuthUserToken
 	@Id
 	@Unique
 	@Column(name = "user_id", unique = true)
-	private Long userId;
+	private String userId;
 	
 	@Column(name = "access_token")
 	private String accessToken;
@@ -40,13 +40,13 @@ public class GoogleAuthUserToken
 	
 	public GoogleAuthUserToken(String accessToken, String refreshToken, LocalDateTime tokenExpiry, LocalDateTime createdAt, LocalDateTime updatedAt ) 
 	{
-		this.userId = Long.valueOf(UUID.randomUUID().toString());
+		this.userId = UUID.randomUUID().toString();
 		this.accessToken = accessToken;
 		this.refreshToken = refreshToken;
 		this.tokenExpiry = tokenExpiry;
 	}
 	
-	public Long getUserId() 
+	public String getUserId() 
 	{
 		return userId;
 	}

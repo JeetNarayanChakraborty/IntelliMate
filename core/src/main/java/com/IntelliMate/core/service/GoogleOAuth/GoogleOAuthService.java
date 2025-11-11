@@ -115,7 +115,7 @@ public class GoogleOAuthService
     }
     
     // Method to exchange user authorization code for tokens
-    public Long exchangeCodeForTokens(String Authcode) throws IOException 
+    public String exchangeCodeForTokens(String Authcode) throws IOException 
     {
     	GoogleAuthUserToken userToken = new GoogleAuthUserToken();
     	
@@ -158,7 +158,7 @@ public class GoogleOAuthService
     
     
     // Method to get stored credential for a user
-    public Credential getStoredCredential(Long userID) throws IOException 
+    public Credential getStoredCredential(String userID) throws IOException 
     {
         GoogleAuthUserToken userToken = GoogleUserTokenRepo.findByUserId(userID);
         		
@@ -196,7 +196,7 @@ public class GoogleOAuthService
     }
     
     // Refresh expired token
-    private void refreshAccessToken(Long userID) throws IOException 
+    private void refreshAccessToken(String userID) throws IOException 
     {    
     	GoogleAuthUserToken userToken = GoogleUserTokenRepo.findByUserId(userID);
         		
@@ -228,7 +228,7 @@ public class GoogleOAuthService
     }
 
     // Method to revoke user's access token
-    public void revokeAccess(Long userID) throws IOException 
+    public void revokeAccess(String userID) throws IOException 
     {
         // Load the stored credential from DB
     	GoogleAuthUserToken userToken = GoogleUserTokenRepo.existsByUserId(userID) ? GoogleUserTokenRepo.findByUserId(userID) : null;

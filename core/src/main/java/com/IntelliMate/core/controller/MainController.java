@@ -60,7 +60,7 @@ public class MainController
         try 
         {
             // Exchange authorization code for tokens and get user ID
-            Long userID = googleOAuthService.exchangeCodeForTokens(code);
+            String userID = googleOAuthService.exchangeCodeForTokens(code);
             
             // Generate JWT token
             String jwtToken = jwtTokenService.generateToken(userID);

@@ -33,10 +33,10 @@ public class JWTTokenService
 	}
     
     // Generate JWT token
-    public String generateToken(Long userID) 
+    public String generateToken(String userID) 
     {
         return Jwts.builder()
-            .subject(userID.toString())     // Store user ID
+            .subject(userID)     // Store user ID
             .issuedAt(new Date())     // Current time
             .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7))  // 7 days
             .signWith(SECRET_KEY)     // Sign with key (no need to specify algorithm)
