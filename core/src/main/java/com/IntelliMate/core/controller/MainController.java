@@ -32,7 +32,14 @@ public class MainController
 		this.jwtTokenService = jwtTokenService;
 	}
 	
+	// Serve login page
+	@GetMapping("/")
+	public String showLoginPage() 
+	{
+		return "login"; 
+	}
 	
+	// Get the Google OAuth login URL
 	@GetMapping("/google/login")
     public ResponseEntity<String> initiateGoogleLogin() 
 	{
@@ -53,7 +60,7 @@ public class MainController
     }
 	
 
-    // Step 2: Google redirects user back here after authentication
+    // Google redirects user back here after authentication
     @GetMapping("/oauth2/callback")
     public ResponseEntity<?> handleGoogleCallback(@RequestParam String code) 
     {
