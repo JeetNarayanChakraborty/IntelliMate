@@ -50,26 +50,16 @@ public class MainController
 	
 	// Serve dashboard page
 	@GetMapping("/dashboard")
-	public String getDashboardPage(@RequestHeader(value = "Authorization", required = false) String authHeader,
-												  HttpSession session) 
+	public String getDashboardPage(HttpSession session) 
 	{
-		// Validate JWT token
-		if(authHeader == null || !authHeader.startsWith("Bearer "))
-		{
-			return "redirect:/login?error=Session expired";
-		}
-				
-		// Extract token
-		String token = authHeader.replace("Bearer ", "");
-				
+		// Get JWT token from session
+		String JWTtoken = (String) session.getAttribute("jwtToken");
+		
 		// Validate if token is valid
-		if(!jwtTokenService.isValid(token))
+		if(JWTtoken != null && !jwtTokenService.isValid(JWTtoken))
 		{
 			return "redirect:/login?error=Invalid token";
 		}
-		
-		// Store token in session for future use
-		session.setAttribute("jwtToken", token);
 		
 		return "Dashboard"; 
 	}
@@ -127,38 +117,28 @@ public class MainController
     }
     
     @PostMapping("/UserRegistration")
-    public String registerUser(@ModelAttribute User user) 
+    public String registerUser(@ModelAttribute User user, HttpSession session) 
 	{
     	String userName = user.getName();
 		String userEmail = user.getEmail();
 		
 		User newUser = new User(userName, userEmail, java.time.Instant.now().toString(), null);
 		
-		
 		// Save user to database
 		userRepository.save(newUser);
 		
+		// Create JWT token for the user
+		String jwtToken = jwtTokenService.generateToken(userEmail);
 		
-		//TODO
+		// Save JWT token to user session
+		session.setAttribute("jwtToken", jwtToken);
+		session.setAttribute("userEmail", userEmail);
+		session.setAttribute("userID", newUser.getId());
 		
-		
-		
-		
-		
-		
-		
-		return "User registered successfully";
+		// Redirect to dashboard
+		return "Dashboard";
 	}
     
-    
-    
-    
-    
-    
-    
-    
-	
-	
 	@PostMapping("/chat")
 	public ResponseEntity<Map<String, String>> chat(@RequestBody Map<String, String> request,
 			                                        HttpSession session)			                                        
