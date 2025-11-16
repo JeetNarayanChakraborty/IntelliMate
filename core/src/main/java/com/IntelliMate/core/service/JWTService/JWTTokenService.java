@@ -33,21 +33,21 @@ public class JWTTokenService
 	}
     
     // Generate JWT token
-    public String generateToken(String userID) 
+    public String generateToken(String user_identifier) 
     {
         return Jwts.builder()
-            .subject(userID)     // Store user ID
+            .subject(user_identifier)     // Store user ID
             .issuedAt(new Date())     // Current time
             .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7))  // 7 days
             .signWith(SECRET_KEY)     // Sign with key (no need to specify algorithm)
             .compact();
     }
     
-    // Extract email from token
-    public String extractUserID(String token) 
+    // Extract user info from token
+    public String extractUserInfo(String token) 
     {
         Claims claims = Jwts.parser()
-            .verifyWith(SECRET_KEY)                             // Updated API
+            .verifyWith(SECRET_KEY)                   
             .build()
             .parseSignedClaims(token)
             .getPayload();

@@ -126,6 +126,13 @@
 		    <artifactId>jjwt-jackson</artifactId>
 		    <version>0.12.6</version>
 		    <scope>runtime</scope>
+		</dependency>    
+		
+		<!-- Jasypt for encryption -->
+		<dependency>
+			<groupId>com.github.ulisesbocchio</groupId>
+			<artifactId>jasypt-spring-boot-starter</artifactId>
+			<version>3.0.5</version>
 		</dependency>
 		
 		<dependency>
