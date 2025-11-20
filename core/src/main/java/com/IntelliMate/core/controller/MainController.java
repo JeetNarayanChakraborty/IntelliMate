@@ -206,7 +206,7 @@ public class MainController
 	    }
 		
 		// Get user ID from token to pass to LLM which will pass it to tools
-		String userID = jwtTokenService.extractUserInfo(token);
+	    String userID = jwtTokenService.extractUserInfo(token);
 		
 		// Get user message
 		String userMessage = userInput.get("message");
