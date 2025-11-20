@@ -615,7 +615,7 @@
         });
 
         // ============================================
-        // SEND MESSAGE WITH JWT TOKEN
+        // SEND MESSAGE
         // ============================================
         async function sendMessage() 
         {
@@ -628,62 +628,54 @@
             addMessage(message, 'user');
             input.value = '';
             
-            // Send to backend with JWT
             await sendChatMessage(message);
         }
 
         async function sendChatMessage(message) 
         {
-            const token = localStorage.getItem('authToken');
-            
-            if(!token) 
-            {
-                alert('Please log in first');
-                window.location.href = '/login.html';
-                return;
-            }
-            
             const sendBtn = document.getElementById('sendBtn');
             sendBtn.disabled = true;
             sendBtn.classList.add('loading');
             sendBtn.textContent = 'Sending...';
-            
+
             try 
             {
-                const response = await fetch('http://localhost:8080/api/chat', {
+                const response = await fetch('http://localhost:8080/api/chat', 
+                {
                     method: 'POST',
+
+                    // Tell browser to INCLUDE COOKIES (JWT token is stored in a cookie)
+                    credentials: "include",
+
                     headers: 
                     {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token  
+                        "Content-Type": "application/json"
                     },
+
                     body: JSON.stringify({
                         message: message
                     })
                 });
-                
-                // Check if unauthorized (token expired/invalid)
+
+                // Handle unauthorized (missing/expired JWT cookie)
                 if(response.status === 401) 
                 {
-                    alert('Your session has expired. Please log in again.');
-                    localStorage.removeItem('authToken');
-                    window.location.href = '/login.html';
+                    alert("Your session has expired. Please log in again.");
+                    window.location.href = "/login.html";
                     return;
                 }
-                
-                // Check for other errors
+
                 if (!response.ok) 
                 {
                     throw new Error(`Server error: ${response.status}`);
                 }
-                
+
                 const data = await response.json();
-                
-                // Display AI response
-                if (data.response) 
+
+                if(data.response) 
                 {
                     addMessage(data.response, 'ai');
-                }
+                } 
 
                 else if(data.error) 
                 {
@@ -694,28 +686,26 @@
                 {
                     addMessage('Received empty response from server.', 'ai');
                 }
-                
-            } 
 
-            catch(error) 
+            } 
+            catch (error) 
             {
-                console.error('Error sending message:', error);
-                addMessage('Sorry, something went wrong. Please try again.', 'ai');
-                
-                // If it's a network error, might indicate server is down
-                if(error.message.includes('Failed to fetch')) {
-                    addMessage('Unable to connect to server. Please check your connection.', 'ai');
+                console.error("Error sending message:", error);
+                addMessage("Sorry, something went wrong. Please try again.", "ai");
+
+                if (error.message.includes("Failed to fetch")) {
+                    addMessage("Unable to connect to server. Please check your connection.", "ai");
                 }
 
             } 
-
             finally 
             {
                 sendBtn.disabled = false;
                 sendBtn.classList.remove('loading');
-                sendBtn.textContent = 'Send';
+                sendBtn.textContent = "Send";
             }
         }
+
 
         // ============================================
         // ADD MESSAGE TO CHAT UI

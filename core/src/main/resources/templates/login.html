@@ -389,17 +389,25 @@
             <h1>Welcome Back 👋</h1>
             <p class="subtitle">Today is a new day. It's your day. You shape it.<br>Sign in to start managing your projects.</p>
 
-            <form id="loginForm">
+            <div th:if="${error}" style="color: #dc3545; background: #f8d7da; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none;" th:style="'display: block; color: #dc3545; background: #f8d7da; padding: 12px; border-radius: 8px; margin-bottom: 20px;'">  
+                <span th:text="${error}">Invalid credentials</span>
+            </div>
+            
+            <div th:if="${message}" style="color: #155724; background: #d4edda; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none;" th:style="'display: block; color: #155724; background: #d4edda; padding: 12px; border-radius: 8px; margin-bottom: 20px;'">
+                <span th:text="${message}">Success message</span>
+        </div>
+
+            <form id="loginForm" th:action="@{/UserLogin}" method="post">
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" placeholder="Example@email.com" required>
+                    <input type="email" id="email" name="email" placeholder="Example@email.com" required>
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="At least 8 characters" required>
+                    <input type="password" id="password" name="password" placeholder="At least 8 characters" required>
                     <div class="forgot-password">
-                        <a href="#" onclick="event.preventDefault(); alert('Password reset functionality');">Forgot Password?</a>
+                        <a th:href="@{/forgot-password}">Forgot Password?</a>
                     </div>
                 </div>
 
@@ -421,7 +429,7 @@
             </div>
 
             <div class="signup-link">
-                Don't you have an account? <a href="#" onclick="event.preventDefault(); alert('Sign up functionality');">Sign up</a>
+                Don't you have an account? <a th:href="@{/signup}">Sign up</a>
             </div>
 
             <div class="footer">
@@ -453,19 +461,6 @@
             rightSection.style.backgroundPosition = `${50 + x * 5}% ${50 + y * 5}%`;
         });
 
-        // JWT Token Storage - When redirected after Google login
-        window.addEventListener('DOMContentLoaded', function() 
-        {
-            const urlParams = new URLSearchParams(window.location.search);
-            const token = urlParams.get('token');
-            
-            if(token) 
-            {
-                localStorage.setItem('authToken', token);
-                window.location.href = '/dashboard.html';
-            }
-        });
-
         // Google Sign-in Button
         document.querySelector('.social-btn').addEventListener('click', async function(e) 
         {
@@ -473,7 +468,7 @@
 
             try 
             {
-                const response = await fetch('http://localhost:8080/auth/google/login');
+                const response = await fetch('[[@{/auth/google/login}]]');
                 const authUrl = await response.text();
                 window.location.href = authUrl;
             } 

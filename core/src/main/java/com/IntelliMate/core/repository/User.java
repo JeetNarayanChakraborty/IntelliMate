@@ -9,6 +9,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+
+import java.util.List;
 import java.util.UUID;
 
 
@@ -24,30 +27,27 @@ public class User
 	private String id;
 	
 	@NotNull
-	@Column(name = "name")
-	private String name;
-	
-	@NotNull
 	@Email
 	@Column(name = "email")
 	private String email;
 	
+	@NotNull
+	@Column(name = "password")
+	private String password;
+	
 	@Column(name = "created_at")
 	private String created_at;
-	
-	@OneToOne(cascade = CascadeType.REMOVE)
-	@JoinColumn(name = "conversation_histories")
-	private ConversationHistory conversationHistory;
 
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+	private List<ConversationHistory> conversationHistories;
 	
 	
-	public User(String name, String email, String created_at, ConversationHistory conversationHistory) 
+	public User(String email, String password, String created_at) 
 	{
 		this.id = UUID.randomUUID().toString();
-		this.name = name;
 		this.email = email;
+		this.password = password;
 		this.created_at = created_at;
-		this.conversationHistory = conversationHistory;
 	}
 	
 	public String getId() 
@@ -60,14 +60,14 @@ public class User
 		this.id = id;
 	}
 
-	public String getName() 
+	public String getPassword() 
 	{
-		return name;
+		return password;
 	}
-
-	public void setName(String name) 
+	
+	public void setPassword(String password) 
 	{
-		this.name = name;
+		this.password = password;
 	}
 
 	public String getEmail() 
@@ -88,16 +88,6 @@ public class User
 	public void setCreated_at(String created_at) 
 	{
 		this.created_at = created_at;
-	}
-
-	public ConversationHistory getConversationHistory() 
-	{
-		return conversationHistory;
-	}
-
-	public void setConversationHistory(ConversationHistory conversationHistory) 
-	{
-		this.conversationHistory = conversationHistory;
 	}
 }
 
