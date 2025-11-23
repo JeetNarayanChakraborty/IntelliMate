@@ -159,7 +159,7 @@ public class MainController
             .build();
 	}
     
-    
+    // Handle user login
     @PostMapping("/UserLogin")
     public ResponseEntity<Object> userLogin(@RequestParam String email, @RequestParam String password)
     {
@@ -203,6 +203,7 @@ public class MainController
 		}
     }
     
+    // Handle chat messages
 	@PostMapping("/chat")
 	public ResponseEntity<Map<String, String>> chat(HttpSession session,
 													@RequestBody Map<String, String> userInput, 	
