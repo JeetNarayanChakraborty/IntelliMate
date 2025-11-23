@@ -171,15 +171,17 @@ public class AIEngine
     }
 
     private Assistant assistant;
-    private final CalendarTool calendarTool;  // injected by Spring
+    private final CalendarTool calendarTool;  
     private final MailTool mailTool;
     private final NewsTool newsTool;
     private final ChatLanguageModel chatModel;
+    private final MessageWindowChatMemory memory;
 
   
     
     public AIEngine(ChatLanguageModel chatModel, CalendarTool calendarTool, MailTool mailTool, NewsTool newsTool) 
     {
+    	this.memory = MessageWindowChatMemory.withMaxMessages(10);
     	this.assistant = null;
 		this.calendarTool = calendarTool;
     	this.mailTool = mailTool;
@@ -202,6 +204,11 @@ public class AIEngine
                 .build();
     	
         return assistant.chat(message); // Start chatting!
+    }
+    
+    public MessageWindowChatMemory getMemory() 
+    {
+        return memory;
     }
 }
 

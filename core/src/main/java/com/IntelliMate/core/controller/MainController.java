@@ -6,14 +6,20 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import com.IntelliMate.core.service.JWTService.JWTTokenService;
+
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import com.IntelliMate.core.AIEngine;
+import com.IntelliMate.core.repository.ConversationHistory;
 import com.IntelliMate.core.repository.User;
 import com.IntelliMate.core.repository.UserRepository;
 import com.IntelliMate.core.service.EncryptionService.JasyptEncryptionService;
@@ -22,6 +28,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import com.IntelliMate.core.repository.ConversationHistoryRepository;
 
 
 
@@ -35,17 +42,20 @@ public class MainController
 	private final JWTTokenService jwtTokenService;
 	private final UserRepository userRepository;
 	private final JasyptEncryptionService jasyptEncryptionService;
+	private final ConversationHistoryRepository ConversationHistoryRepository;
 	
 	
 	public MainController(AIEngine aiEngine, GoogleOAuthService googleOAuthService, 
 			              JWTTokenService jwtTokenService, UserRepository userRepository,
-			              JasyptEncryptionService jasyptEncryptionService) 
+			              JasyptEncryptionService jasyptEncryptionService,
+			              ConversationHistoryRepository ConversationHistoryRepository) 
 	{
 		this.aiEngine = aiEngine;
 		this.googleOAuthService = googleOAuthService;
 		this.jwtTokenService = jwtTokenService;
 		this.userRepository = userRepository;
 		this.jasyptEncryptionService = jasyptEncryptionService;
+		this.ConversationHistoryRepository = ConversationHistoryRepository;
 	}
 	
 	// Serve login page
@@ -83,7 +93,6 @@ public class MainController
             
             // Return URL to frontend
             return ResponseEntity.ok(authUrl);
-            
         } 
         
         catch(IOException e) 
@@ -195,7 +204,9 @@ public class MainController
     }
     
 	@PostMapping("/chat")
-	public ResponseEntity<Map<String, String>> chat(@RequestBody Map<String, String> userInput, @CookieValue(name = "jwtToken", required = false) String token)			                                        
+	public ResponseEntity<Map<String, String>> chat(HttpSession session,
+													@RequestBody Map<String, String> userInput, 	
+			                                        @CookieValue(name = "jwtToken", required = false) String token)			                                        
 	{
 		// If cookie missing or expired token → unauthorized
 	    if (token == null || !jwtTokenService.isValid(token)) 
@@ -210,7 +221,27 @@ public class MainController
 		
 		// Get user message
 		String userMessage = userInput.get("message");
+		
+		// Loading last 10 messages from conversation history into the LLM memory
+		aiEngine.getMemory().clear(); // clear existing memory
+		
+		// fetch last 10 messages from DB
+		List<ConversationHistory> history = ConversationHistoryRepository.getLastNConversationByUser_id(10, userID);
+		
+		// get memory instance
+		MessageWindowChatMemory memory = aiEngine.getMemory();
+		
+		// load messages into memory
+		for(ConversationHistory userHistory : history)
+		{
+			memory.add(new UserMessage(userHistory.getMessage()));
+			memory.add(new AiMessage(userHistory.getResponse()));
+		}
+		
+		// mark memory as loaded in session to avoid reloading every time user sends a message
+		session.setAttribute("memoryLoaded", true);
 
+		
 		// Validate message
 		if(userMessage == null || userMessage.trim().isEmpty()) 
 		{
@@ -221,6 +252,14 @@ public class MainController
 		{
 			// Send message and get AI response
 			String AIResponse = aiEngine.chat(userMessage, Map.of("userID", userID));
+			
+			// save conversation to DB
+			ConversationHistory userConversationHistory = new ConversationHistory(userID,
+																			  userMessage, 
+																			  AIResponse, 
+																			  LocalDateTime.now());
+			ConversationHistoryRepository.save(userConversationHistory);
+			
 			return ResponseEntity.ok(Map.of("response", AIResponse));
 		}
 		
