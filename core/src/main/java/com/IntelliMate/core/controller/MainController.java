@@ -210,7 +210,7 @@ public class MainController
 			                                        @CookieValue(name = "jwtToken", required = false) String token)			                                        
 	{
 		// If cookie missing or expired token → unauthorized
-	    if (token == null || !jwtTokenService.isValid(token)) 
+	    if(token == null || !jwtTokenService.isValid(token)) 
 	    {
 	        return ResponseEntity.status(401).body(
 	                Map.of("error", "Missing or invalid JWT cookie")
@@ -270,6 +270,22 @@ public class MainController
 			return ResponseEntity.status(500).body(Map.of("error", "Internal server error: " + e.getMessage()));
 		}
 	}
+	
+	// Handle user logout
+	@GetMapping("/logout")
+    public String logout(HttpSession session, HttpServletResponse response) 
+	{
+        // delete JWT cookie
+        Cookie cookie = new Cookie("jwt", null);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        response.addCookie(cookie);
+
+        // invalidate session
+        session.invalidate();
+
+        return "redirect:/login";
+    }
 }
 
 

@@ -740,17 +740,17 @@
         // ============================================
         function logout() 
         {
-            if (confirm('Are you sure you want to logout?')) 
+            if(confirm('Are you sure you want to logout?')) 
             {
-                localStorage.removeItem('authToken');
-                window.location.href = '/login.html';
+                window.location.href = '/api/logout';
             }
         }
 
         // ============================================
         // KEYBOARD SHORTCUT (ENTER TO SEND)
         // ============================================
-        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+        document.getElementById('messageInput').addEventListener('keypress', function(e) 
+        {
             if(e.key === 'Enter' && !e.shiftKey) 
             {
                 e.preventDefault();
