@@ -24,10 +24,6 @@ public class ConversationHistory
 	private String id;
 	
 	@NotNull
-	@Column(name = "user_id")
-	private String user_id;
-	
-	@NotNull
 	@Column(name = "message")
 	private String message;
 	
@@ -44,10 +40,9 @@ public class ConversationHistory
 	
 	
 	
-	public ConversationHistory(String user_id, String message, String response, LocalDateTime timestamp) 
+	public ConversationHistory(String message, String response, LocalDateTime timestamp) 
 	{
 		this.id = UUID.randomUUID().toString();
-		this.user_id = user_id;
 		this.message = message;
 		this.response = response;
 		this.timestamp = timestamp;
@@ -61,16 +56,6 @@ public class ConversationHistory
 	public void setId(String id) 
 	{
 		this.id = id;
-	}
-
-	public String getUser_id() 
-	{
-		return user_id;
-	}
-
-	public void setUser_id(String user_id) 
-	{
-		this.user_id = user_id;
 	}
 
 	public String getMessage() 

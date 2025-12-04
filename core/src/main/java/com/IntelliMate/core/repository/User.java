@@ -2,15 +2,13 @@ package com.IntelliMate.core.repository;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
-
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,13 +34,16 @@ public class User
 	private String password;
 	
 	@Column(name = "created_at")
-	private String created_at;
+	private LocalDateTime created_at;
 
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 	private List<ConversationHistory> conversationHistories;
 	
 	
-	public User(String email, String password, String created_at) 
+	
+	public User() {}
+	
+	public User(String email, String password, LocalDateTime created_at) 
 	{
 		this.id = UUID.randomUUID().toString();
 		this.email = email;
@@ -80,12 +81,12 @@ public class User
 		this.email = email;
 	}
 
-	public String getCreated_at() 
+	public LocalDateTime getCreated_at() 
 	{
 		return created_at;
 	}
 
-	public void setCreated_at(String created_at) 
+	public void setCreated_at(LocalDateTime created_at) 
 	{
 		this.created_at = created_at;
 	}

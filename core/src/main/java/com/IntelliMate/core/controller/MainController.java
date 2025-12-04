@@ -65,6 +65,13 @@ public class MainController
 		return "login"; 
 	}
 	
+	// Serve registration page
+	@GetMapping("/registration")
+	public String getRegistrationPage() 
+	{
+		return "registration"; 
+	}
+	
 	// Serve dashboard page
 	@GetMapping("/dashboard")
 	public String getDashboardPage(@RequestParam("token") String jwtToken,
@@ -143,7 +150,7 @@ public class MainController
 		String userPassword = password;
 		String encryptedUserPassword = jasyptEncryptionService.encrypt(userPassword);
 		
-		User newUser = new User(userName, encryptedUserPassword, java.time.Instant.now().toString());
+		User newUser = new User(userName, encryptedUserPassword, LocalDateTime.now());
 		
 		// Save user to database
 		userRepository.save(newUser);
@@ -255,10 +262,9 @@ public class MainController
 			String AIResponse = aiEngine.chat(userMessage, Map.of("userID", userID));
 			
 			// save conversation to DB
-			ConversationHistory userConversationHistory = new ConversationHistory(userID,
-																			  userMessage, 
-																			  AIResponse, 
-																			  LocalDateTime.now());
+			ConversationHistory userConversationHistory = new ConversationHistory(userMessage, 
+																			      AIResponse, 
+																			      LocalDateTime.now());
 			ConversationHistoryRepository.save(userConversationHistory);
 			
 			return ResponseEntity.ok(Map.of("response", AIResponse));

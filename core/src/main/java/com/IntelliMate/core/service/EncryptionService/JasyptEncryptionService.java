@@ -3,6 +3,9 @@ package com.IntelliMate.core.service.EncryptionService;
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 import org.jasypt.iv.RandomIvGenerator;
 import org.springframework.stereotype.Service;
+
+import jakarta.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Value;
 
 
@@ -16,16 +19,19 @@ public class JasyptEncryptionService
 	private StandardPBEStringEncryptor encryptor;
 	
 	
-	// Constructor to initialize the encryptor with the master password
+	
+	public JasyptEncryptionService() {}
+	
+	// Init method to initialize the encryptor with the master password
 	// and algorithm and IV generator
-	public JasyptEncryptionService()
+	@PostConstruct
+    public void init() 
 	{
-		encryptor = new StandardPBEStringEncryptor();
-		encryptor.setPassword(masterPassword);
-		encryptor.setAlgorithm("PBEWITHHMACSHA256ANDAES_256");
-		encryptor.setIvGenerator(new RandomIvGenerator()); 
-		
-	}
+        encryptor = new StandardPBEStringEncryptor();
+        encryptor.setPassword(masterPassword);
+        encryptor.setAlgorithm("PBEWITHHMACSHA256ANDAES_256");
+        encryptor.setIvGenerator(new RandomIvGenerator());
+    }
 	
 	// Encrypt a plain text string
 	public String encrypt(String plainText) 

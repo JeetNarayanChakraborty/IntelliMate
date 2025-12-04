@@ -407,7 +407,7 @@
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" placeholder="At least 8 characters" required>
                     <div class="forgot-password">
-                        <a th:href="@{/forgot-password}">Forgot Password?</a>
+                        <a th:href="@{/api/forgot-password}">Forgot Password?</a>
                     </div>
                 </div>
 
@@ -429,7 +429,7 @@
             </div>
 
             <div class="signup-link">
-                Don't you have an account? <a th:href="@{/signup}">Sign up</a>
+                Don't you have an account? <a th:href="@{/api/registration}">Sign up</a>
             </div>
 
             <div class="footer">
@@ -468,7 +468,7 @@
 
             try 
             {
-                const response = await fetch('[[@{/auth/google/login}]]');
+                const response = await fetch('[[@{/api/google/login}]]');
                 const authUrl = await response.text();
                 window.location.href = authUrl;
             } 
