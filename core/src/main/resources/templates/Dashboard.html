@@ -600,21 +600,6 @@
 
     <script>
         // ============================================
-        // AUTHENTICATION CHECK ON PAGE LOAD
-        // ============================================
-        window.addEventListener('DOMContentLoaded', function() 
-        {
-            const token = localStorage.getItem('authToken');
-            
-            if (!token) 
-            {
-                alert('Please log in first');
-                window.location.href = '/login.html';
-                return;
-            }
-        });
-
-        // ============================================
         // SEND MESSAGE
         // ============================================
         async function sendMessage() 
