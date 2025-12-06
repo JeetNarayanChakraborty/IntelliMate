@@ -109,6 +109,13 @@
 	        <version>v3-rev20230825-2.0.0</version>
 	    </dependency>
 	    
+	    <!-- Google OAuth2 API -->
+	    <dependency>
+		    <groupId>com.google.apis</groupId>
+		    <artifactId>google-api-services-oauth2</artifactId>
+		    <version>v2-rev20200213-1.31.0</version>
+		</dependency>
+	    
 	    <!-- JWT Library -->
 		<dependency>
 		    <groupId>io.jsonwebtoken</groupId>

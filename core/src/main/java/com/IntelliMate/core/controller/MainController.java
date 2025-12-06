@@ -110,26 +110,49 @@ public class MainController
 	
 
     // Google redirects user back here after authentication
-    @GetMapping("/oauth2/callback")
-    public ResponseEntity<?> handleGoogleCallback(@RequestParam String code) 
-    {
-        try 
-        {
-            // Exchange authorization code for tokens and get user ID
-            String userID = googleOAuthService.exchangeCodeForTokens(code);
-            
-            // Generate JWT token
-            String jwtToken = jwtTokenService.generateToken(userID);
-            
-            // Redirect to dashboard with JWT token
-            String redirectUrl = "http://localhost:8080/api/dashboard?token=" + jwtToken;
-            
-            return ResponseEntity.status(302)
-                .header("Location", redirectUrl)
-                .build();
-        } 
-        
-        catch(IOException e) 
+	@GetMapping("/oauth2/callback")
+	public ResponseEntity<?> handleGoogleCallback(@RequestParam String code,
+			                                      @RequestParam(required = false) String state,
+			                                      @CookieValue(name = "jwtToken", required = false) String token) 
+	{
+	    try
+	    {
+	        // check if this is a "link" flow
+	        if(state.equals("link"))
+	        {
+	            // Get currently logged-in user
+	            String jwtToken = token;
+	            
+	            // Get user ID from token
+	            String userID = jwtTokenService.extractUserInfo(jwtToken);
+	            
+	            // Store Google tokens for THIS user
+	            googleOAuthService.exchangeCodeForTokens(code, userID);
+	            
+	            // Redirect back to dashboard (already logged in)
+	            return ResponseEntity.status(302)
+	                .header("Location", "http://localhost:8080/dashboard?google_linked=true")
+	                .build();
+	        }
+	        
+	        else 
+	        {
+	        	// Exchange authorization code for tokens and get user ID
+	            String userID = googleOAuthService.exchangeCodeForTokensFirstTime(code);
+	            
+	            // Generate JWT token
+	            String jwtToken = jwtTokenService.generateToken(userID);
+	            
+	            // Redirect to dashboard with JWT token
+	            String redirectUrl = "http://localhost:8080/api/dashboard?token=" + jwtToken;
+	            
+	            return ResponseEntity.status(302)
+	                .header("Location", redirectUrl)
+	                .build();
+	        }
+	    }
+	    
+	    catch(IOException e) 
         {
             // Authentication failed, redirect to login with error
             String errorUrl = "http://localhost:8080/login?error=authentication_failed";
@@ -138,13 +161,12 @@ public class MainController
                 .header("Location", errorUrl)
                 .build();
         }
-    }
-    
+	}
     
     // Handle user registration
     @PostMapping("/UserRegistration")
     public ResponseEntity<Object> registerUser(@RequestParam("email") String email, @RequestParam("password") String password, 
-    		                   HttpSession session) 
+    		                   				    HttpSession session) 
 	{
     	String userName = email;
 		String userPassword = password;

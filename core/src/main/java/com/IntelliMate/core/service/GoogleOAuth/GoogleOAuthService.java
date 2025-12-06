@@ -15,9 +15,12 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
+import com.google.api.services.oauth2.Oauth2;
+import com.google.api.services.oauth2.model.Userinfo;
 import jakarta.annotation.PostConstruct;
 import com.IntelliMate.core.repository.GoogleUserTokenRepo;
 import com.IntelliMate.core.repository.GoogleAuthUserToken;
@@ -115,22 +118,20 @@ public class GoogleOAuthService
     }
     
     // Method to exchange user authorization code for tokens
-    public String exchangeCodeForTokens(String Authcode) throws IOException 
+    public String exchangeCodeForTokens(String Authcode, String userID) throws IOException 
     {
     	GoogleAuthUserToken userToken = new GoogleAuthUserToken();
     	
-    	// Exchange authorization code for tokens
+    	// Exchange authorization code for token
         TokenResponse tokenResponse = flow.newTokenRequest(Authcode)
             .setRedirectUri("http://localhost:8080/oauth2/callback")
             .execute();
         
         
-        String refreshToken = tokenResponse.getRefreshToken();
-        
         // Check if user token already exists
-        if(GoogleUserTokenRepo.existsByRefreshToken(refreshToken))
+        if(GoogleUserTokenRepo.existsByUserId(userID))
         {
-        	userToken = GoogleUserTokenRepo.findByRefreshToken(refreshToken);
+        	userToken = GoogleUserTokenRepo.findByUserId(userID);
         	
         	// Update existing token
         	userToken.setAccessToken(tokenResponse.getAccessToken());
@@ -143,6 +144,65 @@ public class GoogleOAuthService
         else
         {
         	// Store new token in the database
+        	userToken.setUserId(userID);
+            userToken.setAccessToken(tokenResponse.getAccessToken());
+            userToken.setRefreshToken(tokenResponse.getRefreshToken());
+            userToken.setTokenExpiry(LocalDateTime.now().plusSeconds(tokenResponse.getExpiresInSeconds()));
+            userToken.setCreatedAt(LocalDateTime.now());
+    		userToken.setUpdatedAt(LocalDateTime.now());
+            
+            GoogleUserTokenRepo.save(userToken);        	
+        }
+        
+        // Return the user ID associated with this token
+        return userToken.getUserId();
+    }
+    
+    public String exchangeCodeForTokensFirstTime(String Authcode) throws IOException
+    {
+    	GoogleAuthUserToken userToken = new GoogleAuthUserToken();
+    	
+    	// Exchange authorization code for token
+		TokenResponse tokenResponse = flow.newTokenRequest(Authcode)
+			.setRedirectUri("http://localhost:8080/oauth2/callback")
+			.execute();
+		
+    	// Create credential with the access token
+    	Credential credential = new Credential.Builder(BearerToken.authorizationHeaderAccessMethod())
+    	    .setTransport(new NetHttpTransport())
+    	    .setJsonFactory(GsonFactory.getDefaultInstance())
+    	    .build()
+    	    .setAccessToken(tokenResponse.getAccessToken());
+
+    	// Get user info from Google
+    	Oauth2 oauth2 = new Oauth2.Builder(new NetHttpTransport(), 
+    	                                   GsonFactory.getDefaultInstance(), 
+    	                                   credential)
+    	    .setApplicationName("IntelliMate")
+    	    .build();
+
+    	Userinfo userInfo = oauth2.userinfo().get().execute();
+
+    	// Get email as unique identifier
+    	String userID = userInfo.getEmail();
+
+    	// Check if user token already exists
+        if(GoogleUserTokenRepo.existsByUserId(userID))
+        {
+        	userToken = GoogleUserTokenRepo.findByUserId(userID);
+        	
+        	// Update existing token
+        	userToken.setAccessToken(tokenResponse.getAccessToken());
+        	userToken.setTokenExpiry(LocalDateTime.now().plusSeconds(tokenResponse.getExpiresInSeconds()));
+        	userToken.setUpdatedAt(LocalDateTime.now());
+        	
+        	GoogleUserTokenRepo.save(userToken);
+		}
+        
+        else
+        {
+        	// Store new token in the database
+        	userToken.setUserId(userID);
             userToken.setAccessToken(tokenResponse.getAccessToken());
             userToken.setRefreshToken(tokenResponse.getRefreshToken());
             userToken.setTokenExpiry(LocalDateTime.now().plusSeconds(tokenResponse.getExpiresInSeconds()));

@@ -415,12 +415,21 @@
             border-radius: 12px;
             margin-bottom: 16px;
             transition: all 0.3s ease;
+            cursor: pointer;
+            user-select: none;
         }
 
         .info-card:hover 
         {
             transform: translateY(-4px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(135deg, #e8ecf1 0%, #b8c5d8 100%);
+        }
+
+        .info-card:active 
+        {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .info-card h4 
@@ -554,7 +563,7 @@
                 <div class="chat-messages" id="chatMessages">
                     <div class="welcome-message">
                         <h3>Welcome to IntelliMate! 👋</h3>
-                        <p>I'm your AI assistant. I can help you manage your calendar and more. How can I assist you today?</p>
+                        <p>I'm your AI assistant. I can help you manage your mails and more. How can I assist you today?</p>
                     </div>
                 </div>
 
@@ -577,19 +586,19 @@
                     <h3>Quick Actions</h3>
                 </div>
                 <div class="sidebar-content">
-                    <div class="info-card">
+                    <div class="info-card" onclick="sendQuickAction('calendar')">
                         <h4>📅 Calendar</h4>
                         <p>View your events, schedule meetings, and manage your calendar.</p>
                     </div>
-                    <div class="info-card">
+                    <div class="info-card" onclick="sendQuickAction('email')">
                         <h4>✉️ Email</h4>
                         <p>Draft, send, and manage your emails efficiently.</p>
                     </div>
-                    <div class="info-card">
+                    <div class="info-card" onclick="sendQuickAction('news')">
                         <h4>📰 News</h4>
                         <p>Get the latest news and updates on topics you care about.</p>
                     </div>
-                    <div class="info-card">
+                    <div class="info-card" onclick="sendQuickAction('help')">
                         <h4>🤖 AI Assistance</h4>
                         <p>Ask me anything! I'm here to help with your daily tasks.</p>
                     </div>
@@ -614,6 +623,38 @@
             input.value = '';
             
             await sendChatMessage(message);
+        }
+
+        // ============================================
+        // QUICK ACTION HANDLER FOR SIDEBAR
+        // ============================================
+        function sendQuickAction(action) 
+        {
+            let message = '';
+            
+            switch(action) 
+            {
+                case 'calendar':
+                    message = 'Show me my calendar events';
+                    break;
+                case 'email':
+                    message = 'Help me with my emails';
+                    break;
+                case 'news':
+                    message = 'What\'s in the news today?';
+                    break;
+                case 'help':
+                    message = 'What can you help me with?';
+                    break;
+                default:
+                    return;
+            }
+            
+            // Display the message as if user typed it
+            addMessage(message, 'user');
+            
+            // Send to backend
+            sendChatMessage(message);
         }
 
         async function sendChatMessage(message) 

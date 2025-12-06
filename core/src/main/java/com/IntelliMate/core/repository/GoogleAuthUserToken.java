@@ -6,7 +6,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 
 
@@ -38,9 +37,9 @@ public class GoogleAuthUserToken
 	
 	public GoogleAuthUserToken( ) {}
 	
-	public GoogleAuthUserToken(String accessToken, String refreshToken, LocalDateTime tokenExpiry, LocalDateTime createdAt, LocalDateTime updatedAt ) 
+	public GoogleAuthUserToken(String userID, String accessToken, String refreshToken, LocalDateTime tokenExpiry, LocalDateTime createdAt, LocalDateTime updatedAt ) 
 	{
-		this.userId = UUID.randomUUID().toString();
+		this.userId = userID;
 		this.accessToken = accessToken;
 		this.refreshToken = refreshToken;
 		this.tokenExpiry = tokenExpiry;
@@ -99,6 +98,11 @@ public class GoogleAuthUserToken
 	public void setUpdatedAt(LocalDateTime updatedAt) 
 	{
 		this.updatedAt = updatedAt;
+	}
+
+	public void setUserId(String userID) 
+	{
+		this.userId = userID;
 	}
 }
 
