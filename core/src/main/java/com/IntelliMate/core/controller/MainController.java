@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import com.IntelliMate.core.service.JWTService.JWTTokenService;
-
+import java.util.UUID;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
@@ -29,7 +29,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import com.IntelliMate.core.repository.ConversationHistoryRepository;
-
 
 
 
@@ -111,46 +110,58 @@ public class MainController
 
     // Google redirects user back here after authentication
 	@GetMapping("/oauth2/callback")
-	public ResponseEntity<?> handleGoogleCallback(@RequestParam String code,
-			                                      @RequestParam(required = false) String state,
-			                                      @CookieValue(name = "jwtToken", required = false) String token) 
+	public ResponseEntity<?> handleGoogleCallback(@RequestParam String code) 
 	{
 	    try
 	    {
-	        // check if this is a "link" flow
-	        if(state.equals("link"))
-	        {
-	            // Get currently logged-in user
-	            String jwtToken = token;
-	            
-	            // Get user ID from token
-	            String userID = jwtTokenService.extractUserInfo(jwtToken);
-	            
-	            // Store Google tokens for THIS user
-	            googleOAuthService.exchangeCodeForTokens(code, userID);
-	            
-	            // Redirect back to dashboard (already logged in)
-	            return ResponseEntity.status(302)
-	                .header("Location", "http://localhost:8080/dashboard?google_linked=true")
-	                .build();
-	        }
-	        
-	        else 
-	        {
-	        	// Exchange authorization code for tokens and get user ID
-	            String userID = googleOAuthService.exchangeCodeForTokensFirstTime(code);
-	            
-	            // Generate JWT token
-	            String jwtToken = jwtTokenService.generateToken(userID);
-	            
-	            // Redirect to dashboard with JWT token
-	            String redirectUrl = "http://localhost:8080/api/dashboard?token=" + jwtToken;
-	            
-	            return ResponseEntity.status(302)
-	                .header("Location", redirectUrl)
-	                .build();
-	        }
-	    }
+    	 	try
+    	    {
+    	        // Get Google tokens and user info
+    	        Credential googleUser = googleOAuthService.exchangeCodeForTokens(code);
+    	        
+    	        // Check if user exists in YOUR database by email
+    	        User existingUser = userRepository.findByEmail(googleUser.getEmail());
+    	        
+    	        if(existingUser == null) 
+    	        {
+    	            // NEW USER - Create account
+    	            User newUser = new User();
+    	            newUser.setId(UUID.randomUUID().toString());
+    	            newUser.setEmail(googleUser.getEmail());
+    	            newUser.setGoogleId(googleUser.getGoogleId());
+    	            newUser.setGoogleAccessToken(googleUser.getAccessToken());
+    	            newUser.setGoogleRefreshToken(googleUser.getRefreshToken());
+    	            newUser.setAuthMethod("google");
+    	            
+    	            userRepository.save(newUser);
+    	            
+    	            // Generate JWT for YOUR app
+    	            String jwtToken = jwtTokenService.generateToken(newUser.getId());
+    	            
+    	            return ResponseEntity.status(302)
+    	            	   .header("Location", "http://localhost:8080/dashboard?google_linked=true")
+    	                   .build();
+    	        }
+    	        
+    	        else 
+    	        {
+    	            // EXISTING USER - Link Google account
+    	            existingUser.setGoogleId(googleUser.getGoogleId());
+    	            existingUser.setGoogleAccessToken(googleUser.getAccessToken());
+    	            existingUser.setGoogleRefreshToken(googleUser.getRefreshToken());
+    	            existingUser.setAuthMethod("both");  // Now supports both methods
+    	            existingUser.setLastLogin(LocalDateTime.now());
+    	            
+    	            userRepository.save(existingUser);
+    	            
+    	            // Generate JWT using existing user ID
+    	            String jwtToken = jwtTokenService.generateToken(existingUser.getId());
+    	            
+    	            return ResponseEntity.status(302)
+    	                   .header("Location", "http://localhost:8080/dashboard?google_linked=true")
+    	                   .build();
+    	        }
+    	    }
 	    
 	    catch(IOException e) 
         {
@@ -162,7 +173,7 @@ public class MainController
                 .build();
         }
 	}
-    
+	
     // Handle user registration
     @PostMapping("/UserRegistration")
     public ResponseEntity<Object> registerUser(@RequestParam("email") String email, @RequestParam("password") String password, 
