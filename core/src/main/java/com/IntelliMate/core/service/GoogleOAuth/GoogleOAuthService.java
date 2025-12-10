@@ -19,10 +19,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
-import com.google.api.services.oauth2.Oauth2;
-import com.google.api.services.oauth2.model.Userinfo;
 import jakarta.annotation.PostConstruct;
-
 import com.IntelliMate.core.repository.User;
 import com.IntelliMate.core.repository.UserRepository;
 import com.google.api.client.auth.oauth2.BearerToken;
@@ -210,17 +207,17 @@ public class GoogleOAuthService
     public void revokeAccess(String userID) throws IOException 
     {
         // Load the stored credential from DB
-    	GoogleAuthUserToken userToken = GoogleUserTokenRepo.existsByUserId(userID) ? GoogleUserTokenRepo.findByUserId(userID) : null;
+    	User userToken = userRepository.existsByEmail(userID) ? userRepository.findByEmail(userID) : null;
         
     	
-        if(userToken != null && userToken.getAccessToken() != null) 
+        if(userToken != null && userToken.getGoogleAccessToken() != null) 
         {
             try 
             {
                 // Revoke the token with Google's revocation endpoint
                 httpTransport.createRequestFactory()
                     	.buildGetRequest(new com.google.api.client.http.GenericUrl(
-                        "https://oauth2.googleapis.com/revoke?token=" + userToken.getAccessToken()))
+                        "https://oauth2.googleapis.com/revoke?token=" + userToken.getGoogleAccessToken()))
                     	.execute();
             } 
             
@@ -233,7 +230,7 @@ public class GoogleOAuthService
             finally
             {
             	// Delete the stored credentials locally
-            	GoogleUserTokenRepo.deleteByUserId(userID);
+            	userRepository.deleteByEmail(userID);
             }
         }
     }
