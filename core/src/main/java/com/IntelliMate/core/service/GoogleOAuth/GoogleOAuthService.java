@@ -19,6 +19,9 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
+import com.google.api.services.oauth2.Oauth2;
+import com.google.api.services.oauth2.model.Userinfo;
+
 import jakarta.annotation.PostConstruct;
 import com.IntelliMate.core.repository.User;
 import com.IntelliMate.core.repository.UserRepository;
@@ -116,7 +119,7 @@ public class GoogleOAuthService
     }
     
     // Method to exchange user authorization code for tokens
-    public Credential exchangeCodeForTokens(String Authcode) throws IOException 
+    public User exchangeCodeForTokens(String Authcode) throws IOException 
     {
     	// Exchange authorization code for token
         TokenResponse tokenResponse = flow.newTokenRequest(Authcode)
@@ -129,8 +132,24 @@ public class GoogleOAuthService
     	    .setJsonFactory(GsonFactory.getDefaultInstance())
     	    .build()
     	    .setAccessToken(tokenResponse.getAccessToken());
+    	
+    	// Get user info from Google
+        Oauth2 oauth2 = new Oauth2.Builder(new NetHttpTransport(), 
+                                           GsonFactory.getDefaultInstance(), 
+                                           credential)
+            .setApplicationName("Your App Name")
+            .build();
         
-    	return credential;
+        Userinfo userInfo = oauth2.userinfo().get().execute();
+        
+        // Extract user details
+        String email = userInfo.getEmail();
+        String googleId = userInfo.getId();
+    	String accessToken = tokenResponse.getAccessToken();
+    	String refreshToken = tokenResponse.getRefreshToken();
+    	
+    	
+    	return new User(email, googleId, accessToken, refreshToken, null);    	
     }
     
     // Method to get stored credential for a user
