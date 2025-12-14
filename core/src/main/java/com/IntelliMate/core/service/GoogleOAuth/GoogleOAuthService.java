@@ -79,10 +79,14 @@ public class GoogleOAuthService
         
         // Define scopes
         this.scopes = Arrays.asList(
-            "https://www.googleapis.com/auth/contacts.readonly",
-            "https://www.googleapis.com/auth/gmail.send",
-            "https://www.googleapis.com/auth/gmail.compose",
-            "https://www.googleapis.com/auth/calendar"
+        		"https://www.googleapis.com/auth/userinfo.email",
+        		"https://www.googleapis.com/auth/userinfo.profile",
+        		"https://www.googleapis.com/auth/gmail.readonly",
+        		"https://www.googleapis.com/auth/gmail.send",
+        		"https://www.googleapis.com/auth/gmail.compose",
+        		"https://www.googleapis.com/auth/gmail.modify",
+        		"https://www.googleapis.com/auth/calendar",
+        		"https://www.googleapis.com/auth/contacts.readonly"
         );
         
         // Load client secrets from file
@@ -111,11 +115,21 @@ public class GoogleOAuthService
     // Method to get the authorization URL, after this user gets option to "continue with google login"
     public String getAuthorizationUrl() throws IOException 
     {
-        return flow.newAuthorizationUrl()
-        	   .setRedirectUri("http://localhost:8080/oauth2/callback") // This is where google will redirect after auth
+        String url = flow.newAuthorizationUrl()
+        	   .setRedirectUri("http://localhost:8080/api/oauth2/callback") // This is where google will redirect after auth
                .setAccessType("offline") // Request refresh token
                .setApprovalPrompt("force") // Force approval prompt every time
                .build();
+        
+        
+        
+        // URL Log for debugging
+        System.out.println("Generated Auth URL: " + url);
+        
+        
+        
+        
+        return url;
     }
     
     // Method to exchange user authorization code for tokens
@@ -123,7 +137,7 @@ public class GoogleOAuthService
     {
     	// Exchange authorization code for token
         TokenResponse tokenResponse = flow.newTokenRequest(Authcode)
-            .setRedirectUri("http://localhost:8080/oauth2/callback")
+            .setRedirectUri("http://localhost:8080/api/oauth2/callback")
             .execute();
         
         // Create credential with the token
