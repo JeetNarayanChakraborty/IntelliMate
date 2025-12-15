@@ -80,10 +80,10 @@ public class MainController
 		// Create JWT token in secure HttpOnly cookie
 		// and send it to client to save in browser
 		Cookie cookie = new Cookie("jwt", jwtToken);
-		cookie.setHttpOnly(true);                  // JS cannot read
-		cookie.setSecure(true);                    // HTTPS only
-		cookie.setPath("/api/chat");               // valid for chat endpoint only
-		cookie.setMaxAge(7 * 24 * 60 * 60);        // 7 days
+		cookie.setHttpOnly(true);                  	// JS cannot read
+		cookie.setSecure(false);                    // HTTPS only
+		cookie.setPath("/");               			// valid for all endpoints
+		cookie.setMaxAge(7 * 24 * 60 * 60);        	// 7 days
 		response.addCookie(cookie);
 
 		return "Dashboard"; 
@@ -253,12 +253,22 @@ public class MainController
 	@PostMapping("/chat")
 	public ResponseEntity<Map<String, String>> chat(HttpSession session,
 													@RequestBody Map<String, String> userInput, 	
-			                                        @CookieValue(name = "jwtToken", required = false) String token)			                                        
+			                                        @CookieValue(name = "jwt", required = false) String token)			                                        
 	{
 		// If cookie missing or expired token → unauthorized
 	    if(token == null || !jwtTokenService.isValid(token)) 
 	    {
-	        return ResponseEntity.status(401).body(
+	    	
+	    	if(token != null && !jwtTokenService.isValid(token)) {System.out.println("JWT token is invalid");}
+	    	
+	    	
+	    	
+	    	
+	    	
+	    	
+	    	
+	    	
+	        return ResponseEntity.status(403).body(
 	                Map.of("error", "Missing or invalid JWT cookie")
 	        );
 	    }

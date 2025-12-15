@@ -716,7 +716,7 @@
                 });
 
                 // Handle unauthorized (missing/expired JWT cookie)
-                if(response.status === 401) 
+                if(response.status === 403) 
                 {
                     alert("Your session has expired. Please log in again.");
                     window.location.href = "/login.html";
