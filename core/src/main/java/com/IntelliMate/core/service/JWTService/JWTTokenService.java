@@ -2,34 +2,42 @@ package com.IntelliMate.core.service.JWTService;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import java.security.NoSuchAlgorithmException;
+import javax.crypto.spec.SecretKeySpec;
 import java.util.Date;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 
 
 @Service
 public class JWTTokenService 
 {  
-    // Generate a secure key
     private final SecretKey SECRET_KEY;
     
     
-    public JWTTokenService() 
+    public JWTTokenService(@Value("${jwt.secret.key}") String jwtSecretKeyPath) 
 	{
-    	KeyGenerator keyGen=null;
+    	try
+    	{
+    		String keyString=null;
+        	
+    		keyString = Files.readString(Paths.get(jwtSecretKeyPath)).trim();
+
+    		// Load the key from the file
+    		byte[] keyBytes;
+    		
+    		keyBytes = java.util.Base64.getDecoder().decode(keyString); 
+    		
+    		SECRET_KEY = new SecretKeySpec(keyBytes, "HmacSHA256");
+    	}
     	
-		try 
+    	catch(Exception e) 
 		{
-			keyGen = KeyGenerator.getInstance("HmacSHA256");
-		} 
-		catch(NoSuchAlgorithmException e) {};
-		
-        keyGen.init(256); // 256-bit key
-        
-    	this.SECRET_KEY = keyGen.generateKey();
+    		throw new RuntimeException("Failed to load JWT secret key", e);
+		}
 	}
     
     // Generate JWT token

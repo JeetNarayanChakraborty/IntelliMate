@@ -258,16 +258,6 @@ public class MainController
 		// If cookie missing or expired token → unauthorized
 	    if(token == null || !jwtTokenService.isValid(token)) 
 	    {
-	    	
-	    	if(token != null && !jwtTokenService.isValid(token)) {System.out.println("JWT token is invalid");}
-	    	
-	    	
-	    	
-	    	
-	    	
-	    	
-	    	
-	    	
 	        return ResponseEntity.status(403).body(
 	                Map.of("error", "Missing or invalid JWT cookie")
 	        );
