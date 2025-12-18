@@ -44,6 +44,7 @@ public class DBConfig
         
         catch(IOException e) 
         {
+        	// Handle the exception appropriately
             throw new RuntimeException("CRITICAL: Could not read DB password from: " + passwordPath, e);
         }
     }
