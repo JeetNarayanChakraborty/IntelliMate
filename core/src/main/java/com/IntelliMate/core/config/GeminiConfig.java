@@ -26,7 +26,7 @@ public class GeminiConfig
             // 2. Build the model
             return GoogleAiGeminiChatModel.builder()
                     .apiKey(apiKeyContent)
-                    .modelName("gemini-1.5-flash")
+                    .modelName("gemini-2.5-flash")
                     .temperature(0.7)
                     .build();
         } 
