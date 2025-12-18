@@ -136,7 +136,7 @@ public class MainController
 	            userRepository.save(newUser);
 	            
 	            // Generate JWT for YOUR app
-	            String jwtToken = jwtTokenService.generateToken(newUser.getId());
+	            String jwtToken = jwtTokenService.generateToken(newUser.getEmail());
 	            
 	            String redirectUrl = "http://localhost:8080/api/dashboard?token=" + jwtToken;
 	            
@@ -158,7 +158,7 @@ public class MainController
 	            userRepository.save(existingUser);
 	            
 	            // Generate JWT using existing user ID
-	            String jwtToken = jwtTokenService.generateToken(existingUser.getId());
+	            String jwtToken = jwtTokenService.generateToken(existingUser.getEmail());
 	            
 	            String redirectUrl = "http://localhost:8080/api/dashboard?token=" + jwtToken;
 	            
@@ -265,6 +265,14 @@ public class MainController
 		
 		// Get user ID from token to pass to LLM which will pass it to tools
 	    String userID = jwtTokenService.extractUserInfo(token);
+	    
+	    // Fetch the User entity object to link with conversation history
+	    User currentUser = userRepository.findByEmail(userID);
+	    
+	    if(currentUser == null) 
+	    {
+	        return ResponseEntity.status(404).body(Map.of("error", "User not found"));
+	    }
 		
 		// Get user message
 		String userMessage = userInput.get("message");
@@ -275,19 +283,21 @@ public class MainController
 		// fetch last 10 messages from DB
 		List<ConversationHistory> history = ConversationHistoryRepository.getLastNConversationByUser_id(10, userID);
 		
-		// get memory instance
-		MessageWindowChatMemory memory = aiEngine.getMemory();
-		
-		// load messages into memory
-		for(ConversationHistory userHistory : history)
+		if(!history.isEmpty())
 		{
-			memory.add(new UserMessage(userHistory.getMessage()));
-			memory.add(new AiMessage(userHistory.getResponse()));
+			// get memory instance
+			MessageWindowChatMemory memory = aiEngine.getMemory();
+			
+			// load messages into memory
+			for(ConversationHistory userHistory : history)
+			{
+				memory.add(new UserMessage(userHistory.getMessage()));
+				memory.add(new AiMessage(userHistory.getResponse()));
+			}
+			
+			// mark memory as loaded in session to avoid reloading every time user sends a message
+			session.setAttribute("memoryLoaded", true);
 		}
-		
-		// mark memory as loaded in session to avoid reloading every time user sends a message
-		session.setAttribute("memoryLoaded", true);
-
 		
 		// Validate message
 		if(userMessage == null || userMessage.trim().isEmpty()) 
@@ -304,6 +314,9 @@ public class MainController
 			ConversationHistory userConversationHistory = new ConversationHistory(userMessage, 
 																			      AIResponse, 
 																			      LocalDateTime.now());
+			// link conversation to user
+			userConversationHistory.setUser(currentUser);
+			
 			ConversationHistoryRepository.save(userConversationHistory);
 			
 			return ResponseEntity.ok(Map.of("response", AIResponse));
@@ -312,7 +325,8 @@ public class MainController
 		catch(Exception e)
 		{
 			// Handle any unexpected errors
-			return ResponseEntity.status(500).body(Map.of("error", "Internal server error: " + e.getMessage()));
+			e.printStackTrace();
+			return ResponseEntity.status(500).body(Map.of("error", "Internal server error"));
 		}
 	}
 	

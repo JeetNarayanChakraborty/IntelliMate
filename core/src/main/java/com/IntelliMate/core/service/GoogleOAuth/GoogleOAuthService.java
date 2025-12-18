@@ -151,7 +151,7 @@ public class GoogleOAuthService
         Oauth2 oauth2 = new Oauth2.Builder(new NetHttpTransport(), 
                                            GsonFactory.getDefaultInstance(), 
                                            credential)
-            .setApplicationName("Your App Name")
+            .setApplicationName("IntelliMate")
             .build();
         
         Userinfo userInfo = oauth2.userinfo().get().execute();

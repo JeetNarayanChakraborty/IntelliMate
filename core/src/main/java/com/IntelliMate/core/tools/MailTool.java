@@ -27,7 +27,7 @@ public class MailTool
 		this.userID = userID;
 	}
 
-	@Tool("Sends an email to specified recipients")
+	@Tool(name = "send_mail", value = "Sends an email to specified recipients")
 	public List<String> sendEmail(List<String> to, String subject, String body)
 	{
 		List<String> emails = new ArrayList<>();
@@ -51,7 +51,7 @@ public class MailTool
 		return emails;
 	}
 	
-	@Tool("Gets emails from the user's inbox")
+	@Tool(name = "get_mails", value = "Gets emails from the user's inbox")
 	public List<Message> getMails(int maxResults)
 	{
 		try 
@@ -65,18 +65,11 @@ public class MailTool
 			return new ArrayList<>();
 		}
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-
 }
+
+
+
+
+
+
+

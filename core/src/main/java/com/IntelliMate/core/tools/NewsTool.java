@@ -1,9 +1,7 @@
 package com.IntelliMate.core.tools;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.stereotype.Component;
 import com.IntelliMate.core.repository.newsRepo.Article;
 import com.IntelliMate.core.service.NewsService.NewsFetchService;
@@ -23,7 +21,7 @@ public class NewsTool
 		this.newsFetchService = newsFetchService;
 	}
 	
-	@Tool("Fetches latest news articles on a given topic.")
+	@Tool(name = "get_news", value = "Fetches latest news articles on a given topic.")
 	public Map<String, Object> getNews(String query)
 	{
 	    List<Article> articles = newsFetchService.fetchNews(query);

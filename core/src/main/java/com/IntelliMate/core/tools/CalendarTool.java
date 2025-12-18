@@ -34,7 +34,7 @@ public class CalendarTool
 	
 	
 	// Tool to check availability of users
-	@Tool(name = "Checks if a user or a list of users are available during a specified time range",
+	@Tool(name = "check_user_availability",
 			   value = "Checks if a user or a list of users are available during a specified time range. " +
 	           "Returns true if all users are available, false if any user is busy. " +
 	           "Use this when user asks about 'are they free', 'is everyone available', 'check availability', or 'schedule meeting'. "
@@ -77,7 +77,7 @@ public class CalendarTool
 	}
 	
 	// Tool to get today's events for a user
-	@Tool(name = "Get all the calendar events for a user on current day",
+	@Tool(name = "user_events_today",
 		 	   value = "Retrieves all calendar events for the current day. " +
 	           "Returns a list of event objects with properties: id (string), summary (string), " +
 	           "description (string), start time (ISO 8601 datetime), end time (ISO 8601 datetime), " +
@@ -99,7 +99,7 @@ public class CalendarTool
 	}
 	
 	// Tool to get this week's events for a user
-	@Tool(name = "Get weekly events for the current week",
+	@Tool(name = "user_events_this_week",
 			   value = "Retrieves all calendar events for the current week (Monday to Sunday). " +
 	           "Returns a list of event objects with properties: id (string), summary (string), " +
 	           "description (string), start time (ISO 8601 datetime), end time (ISO 8601 datetime), " +
@@ -121,7 +121,7 @@ public class CalendarTool
 	}
 	
 	// Tool to find available time slots for a user or a list of users
-	@Tool(name = "Find available time slots for a user or a list of users within the specified duration in minutes",
+	@Tool(name = "find_available_time_slots",
 			   value = "Finds available time slots for a user or a list of users within the specified duration in minutes. " +
 	           "Returns a list of available time slots as ISO 8601 datetime objects. " +
 	           "Use this when user asks about 'find me a time', 'available slots', 'schedule a meeting', or 'free time'. "

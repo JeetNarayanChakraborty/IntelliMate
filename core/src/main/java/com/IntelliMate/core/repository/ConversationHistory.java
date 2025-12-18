@@ -40,6 +40,9 @@ public class ConversationHistory
 	
 	
 	
+	
+	public ConversationHistory() {}
+	
 	public ConversationHistory(String message, String response, LocalDateTime timestamp) 
 	{
 		this.id = UUID.randomUUID().toString();
@@ -86,6 +89,11 @@ public class ConversationHistory
 	public void setTimestamp(LocalDateTime timestamp) 
 	{
 		this.timestamp = timestamp;
+	}
+	
+	public void setUser(User user) 
+	{
+		this.user = user;
 	}
 }
 
