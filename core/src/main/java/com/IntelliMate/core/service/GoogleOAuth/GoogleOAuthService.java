@@ -177,7 +177,7 @@ public class GoogleOAuthService
         if(userToken.getGoogleTokenExpiry().isBefore(LocalDateTime.now())) 
         {
         	// If expired, refresh the token
-            refreshAccessToken(userID);
+        	refreshAccessToken(userID);
             
             // Reload the updated token
             userToken = userRepository.findByEmail(userID);
