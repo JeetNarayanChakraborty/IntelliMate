@@ -29,6 +29,8 @@ import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 
@@ -57,6 +59,7 @@ public class GoogleOAuthService
 	private String TOKENS_DIRECTORY_PATH = "tokens";
 	
 	// Repository to manage user and user google tokens
+	@Autowired
 	private UserRepository userRepository;
 	
 	// Client secrets loaded from file
@@ -120,15 +123,7 @@ public class GoogleOAuthService
                .setAccessType("offline") // Request refresh token
                .setApprovalPrompt("force") // Force approval prompt every time
                .build();
-        
-        
-        
-        // URL Log for debugging
-        System.out.println("Generated Auth URL: " + url);
-        
-        
-        
-        
+
         return url;
     }
     
@@ -268,34 +263,6 @@ public class GoogleOAuthService
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -1,6 +1,5 @@
 package com.IntelliMate.core.service.MailService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.IntelliMate.core.service.GoogleOAuth.GoogleOAuthService;
 import com.google.api.client.auth.oauth2.Credential;

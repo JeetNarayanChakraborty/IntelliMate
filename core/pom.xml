@@ -45,10 +45,10 @@
 		</dependency>
 		
 		<!-- LangChain4j Core -->
-       <dependency>
-           <groupId>dev.langchain4j</groupId>
-           <artifactId>langchain4j</artifactId>
-       </dependency>
+		<dependency>
+        	<groupId>dev.langchain4j</groupId>
+        	<artifactId>langchain4j-core</artifactId>
+    	</dependency>
        
        <!-- Google Gemini Integration -->
        <dependency>
@@ -60,6 +60,11 @@
        <dependency>
            <groupId>dev.langchain4j</groupId>
            <artifactId>langchain4j-spring-boot-starter</artifactId>
+       </dependency>
+       
+       <dependency>
+           <groupId>dev.langchain4j</groupId>
+           <artifactId>langchain4j</artifactId>
        </dependency>
        
 		<dependency>
@@ -168,7 +173,7 @@
            <dependency>
                <groupId>dev.langchain4j</groupId>
                <artifactId>langchain4j-bom</artifactId>
-               <version>0.35.0</version>
+               <version>1.9.1</version>
                <type>pom</type>
                <scope>import</scope>
            </dependency>

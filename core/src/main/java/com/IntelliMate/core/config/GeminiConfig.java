@@ -6,8 +6,8 @@ import java.nio.file.Paths;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel;
+import dev.langchain4j.model.chat.ChatModel;
 
 
 
@@ -16,7 +16,7 @@ import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel;
 public class GeminiConfig 
 {
     @Bean
-    public ChatLanguageModel chatLanguageModel(@Value("${gemini.api.key}") String apiKeyPath) 
+    public ChatModel chatLanguageModel(@Value("${gemini.api.key}") String apiKeyPath) 
     {
         try 
         {
@@ -26,8 +26,10 @@ public class GeminiConfig
             // 2. Build the model
             return GoogleAiGeminiChatModel.builder()
                     .apiKey(apiKeyContent)
-                    .modelName("gemini-2.5-flash")
+                    .modelName("gemini-2.5-flash-lite")
+                    .logRequestsAndResponses(true)
                     .temperature(0.7)
+                    .allowCodeExecution(false)
                     .build();
         } 
         

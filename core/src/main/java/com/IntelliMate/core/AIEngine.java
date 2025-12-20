@@ -1,14 +1,14 @@
 package com.IntelliMate.core;
 
-import dev.langchain4j.service.SystemMessage;
+import java.util.Map;
 import dev.langchain4j.service.AiServices;
-import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import com.IntelliMate.core.tools.CalendarTool;
 import com.IntelliMate.core.tools.MailTool;
 import com.IntelliMate.core.tools.NewsTool;
-import java.util.Map;
 import org.springframework.stereotype.Service;
+import dev.langchain4j.model.chat.ChatModel;
 
 
 
@@ -20,6 +20,11 @@ public class AIEngine
     {
         @SystemMessage("""
             You are a helpful AI assistant that helps users with news, Google Calendar management, and email tasks.
+            
+            To check or send emails, you MUST ONLY use the provided 'MailTool'.
+            Do not attempt to use any built-in Google Workspace extensions.
+            If you need to check the calendar, use the 'CalendarTool'.
+            Never tell the user you have a 'Google Token' issue; instead, use your provided tools to fetch data.
 
 			CORE RESPONSIBILITIES:
 			- Fetch latest news articles using the news tool
@@ -174,12 +179,12 @@ public class AIEngine
     private final CalendarTool calendarTool;  
     private final MailTool mailTool;
     private final NewsTool newsTool;
-    private final ChatLanguageModel chatModel;
+    private final ChatModel chatModel;
     private final MessageWindowChatMemory memory;
 
   
     
-    public AIEngine(ChatLanguageModel chatModel, CalendarTool calendarTool, MailTool mailTool, NewsTool newsTool) 
+    public AIEngine(ChatModel chatModel, CalendarTool calendarTool, MailTool mailTool, NewsTool newsTool) 
     {
     	this.memory = MessageWindowChatMemory.withMaxMessages(10);
     	this.assistant = null;
@@ -198,7 +203,7 @@ public class AIEngine
         
     	
     	this.assistant = AiServices.builder(Assistant.class) // 1. Define the assistant interface
-                .chatLanguageModel(chatModel) // 2. Provide the language model
+                .chatModel(chatModel) // 2. Provide the language model
                 .tools(calendarTool, mailTool, newsTool) // 3. Register the tools
                 .chatMemory(MessageWindowChatMemory.withMaxMessages(10)) // 4. Set up chat memory
                 .build();

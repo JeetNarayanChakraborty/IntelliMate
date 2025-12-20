@@ -277,7 +277,6 @@ public class MainController
 		// Get user message
 		String userMessage = userInput.get("message");
 		
-		// Loading last 10 messages from conversation history into the LLM memory
 		aiEngine.getMemory().clear(); // clear existing memory
 		
 		// fetch last 10 messages from DB
