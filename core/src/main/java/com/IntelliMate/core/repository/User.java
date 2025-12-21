@@ -78,14 +78,14 @@ public class User
     
     // Constructor for Google registration
     public User(String email, String googleId, String googleAccessToken, 
-                String googleRefreshToken, LocalDateTime googleTokenExpiry) 
+                String googleRefreshToken, long googleTokenExpiry) 
     {
         this.id = UUID.randomUUID().toString();
         this.email = email;
         this.googleId = googleId;
         this.googleAccessToken = googleAccessToken;
         this.googleRefreshToken = googleRefreshToken;
-        this.googleTokenExpiry = googleTokenExpiry;
+        this.googleTokenExpiry = LocalDateTime.now().plusSeconds(googleTokenExpiry);
         this.authMethod = "google";
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();

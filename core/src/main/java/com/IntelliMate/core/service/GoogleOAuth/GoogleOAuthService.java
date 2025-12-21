@@ -156,9 +156,10 @@ public class GoogleOAuthService
         String googleId = userInfo.getId();
     	String accessToken = tokenResponse.getAccessToken();
     	String refreshToken = tokenResponse.getRefreshToken();
+    	long expiryTime = tokenResponse.getExpiresInSeconds();
     	
     	
-    	return new User(email, googleId, accessToken, refreshToken, null);    	
+    	return new User(email, googleId, accessToken, refreshToken, expiryTime);    	
     }
     
     // Method to get stored credential for a user

@@ -131,6 +131,8 @@ public class MainController
 	            newUser.setGoogleId(googleUser.getGoogleId());
 	            newUser.setGoogleAccessToken(googleUser.getGoogleAccessToken());
 	            newUser.setGoogleRefreshToken(googleUser.getGoogleRefreshToken());
+	            newUser.setGoogleTokenExpiry(googleUser.getGoogleTokenExpiry());
+	            newUser.setLastLogin(LocalDateTime.now());
 	            newUser.setAuthMethod("google");
 	            
 	            userRepository.save(newUser);
@@ -152,6 +154,7 @@ public class MainController
 	            existingUser.setGoogleId(googleUser.getGoogleId());
 	            existingUser.setGoogleAccessToken(googleUser.getGoogleAccessToken());
 	            existingUser.setGoogleRefreshToken(googleUser.getGoogleRefreshToken());
+	            existingUser.setGoogleTokenExpiry(googleUser.getGoogleTokenExpiry());
 	            existingUser.setAuthMethod("both");  // Now supports both methods
 	            existingUser.setLastLogin(LocalDateTime.now());
 	            
