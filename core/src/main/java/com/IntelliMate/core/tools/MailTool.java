@@ -28,7 +28,7 @@ public class MailTool
 	}
 
 	@Tool(name = "send_mail", value = "Sends an email to specified recipients")
-	public List<String> sendEmail(List<String> to, String subject, String body)
+	public List<String> sendEmail(List<String> to, String subject, String body, String threadID)
 	{
 		List<String> emails = new ArrayList<>();
 		
@@ -37,7 +37,7 @@ public class MailTool
 			try 
 			{
 				// Send email using MailSendService
-				String result = mailSendService.sendMail(userID, recipient, subject, body);
+				String result = mailSendService.sendMail(userID, recipient, subject, body, threadID);
 				emails.add(result);
 			} 
 			

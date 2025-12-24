@@ -36,15 +36,27 @@ public class MailSendAndGetService
     
     
     // Send email method
-    public String sendMail(String userID, String to, String subject, String body) 
+    public String sendMail(String userID, String to, String subject, String body, String threadID) 
         throws IOException, MessagingException 
     {
     	try
     	{
     		Gmail service = getGmailService(userID);
-            
+    		String originalMessageID = null;
+    		
+    		// If it's a reply, fetch the original message-id header
+            if (threadID != null && !threadID.isEmpty()) 
+            {
+                Message original = service.users().messages().get("me", threadID).execute();
+                originalMessageID = original.getPayload().getHeaders().stream()
+                					.filter(h -> h.getName().equalsIgnoreCase("Message-ID"))
+                					.findFirst()
+                					.map(h -> h.getValue())
+                					.orElse(null);
+            }
+    		
             // Create email using Jakarta Mail
-            MimeMessage email = createEmail(to, "me", subject, body);
+            MimeMessage email = createEmail(to, "me", subject, body, originalMessageID);
             
             // Convert MimeMessage to Gmail Message
             Message message = createMessageWithEmail(email);
@@ -91,7 +103,7 @@ public class MailSendAndGetService
     
     
     // Create email using Jakarta Mail
-    private MimeMessage createEmail(String to, String from, String subject, String bodyText) 
+    private MimeMessage createEmail(String to, String from, String subject, String bodyText, String originalMessageID) 
         throws MessagingException 
     {
         Properties props = new Properties();
@@ -102,6 +114,13 @@ public class MailSendAndGetService
         email.addRecipient(jakarta.mail.Message.RecipientType.TO, new InternetAddress(to));
         email.setSubject(subject);
         email.setText(bodyText);
+        
+        // If originalMessageID exists, set the reply headers
+        if(originalMessageID != null) 
+        {
+            email.setHeader("In-Reply-To", originalMessageID);
+            email.setHeader("References", originalMessageID);
+        }
         
         return email;
     }
