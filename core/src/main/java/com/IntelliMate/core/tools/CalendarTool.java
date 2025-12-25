@@ -130,6 +130,29 @@ public class CalendarTool
 	{
 		return googleCalendarService.getNextAvailableSlots(userID, attendeeEmails, slotDurationInMinutes);
 	}
+	
+	
+	// Tool to schedule a meeting with attendees
+	@Tool(name = "schedule_meeting",
+			   value = "Schedules a meeting with specified title, description, attendees, date/time slot, and duration in minutes. " +
+	           "Returns confirmation message with meeting details or error message if scheduling fails. " +
+	           "Use this when user asks about 'schedule a meeting', 'set up a meeting', 'arrange a meeting', or 'book a meeting'. "
+	           + "or anything related to scheduling meetings")
+	private String scheduleMeeting(String title, String description, List<String> attendeeEmails, 
+								   DateTime availableSlot, int durationInMinutes)
+	{
+		try
+		{
+			return googleCalendarService.scheduleMeetingWithAttendees(userID, attendeeEmails, title, description, 
+					                                                  availableSlot, durationInMinutes);
+		}
+		
+		catch(IOException e)
+		{
+			e.printStackTrace();
+			return "Failed to schedule meeting.";
+		}
+	}
 }
 
 

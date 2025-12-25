@@ -8,6 +8,8 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
+import com.google.api.services.calendar.model.EventAttendee;
+import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
 import com.google.api.services.calendar.model.FreeBusyCalendar;
 import com.google.api.services.calendar.model.FreeBusyRequest;
@@ -185,7 +187,10 @@ public class GoogleCalendarService
 	
 	// Get next available time slots for multiple attendees
 	public List<DateTime> getNextAvailableSlots(String userID, List<String> attendeeEmails, int slotDurationInMinutes)
-	{	
+	{
+		// Current day to ensure the loop stops at midnight
+	    int startDay = ZonedDateTime.now().getDayOfMonth();
+		
 		// Get start time (current time)
 		String startTime = ZonedDateTime.now().
 				           format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
@@ -195,10 +200,10 @@ public class GoogleCalendarService
 				                             format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 		
 		List<DateTime> availableSlots = new ArrayList<>();
+		boolean slotIsBusy = false;
 		
 		// Loop and find all available slots until the end of the day
-		while(ZonedDateTime.parse(endTime).toLocalTime().getHour() <= 23 && 
-			  ZonedDateTime.parse(endTime).toLocalTime().getMinute() <= 59)
+		while(ZonedDateTime.parse(endTime).getDayOfMonth() == startDay)
 		{
 			try
 			{
@@ -218,44 +223,105 @@ public class GoogleCalendarService
 				        // If the busy times list is not empty for any one of the attendees, move to the next slot
 				        if(busyTimes != null && !busyTimes.isEmpty()) 
 				        {
-				        	startTime = endTime;
-				        	endTime = ZonedDateTime.parse(endTime).plusMinutes(slotDurationInMinutes).
-				        			 				format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-				        	
-				            continue; // Check next slot
+				        	slotIsBusy = true;
+				            break;
+				        }
+				        
+				        else if(busyTimes == null || busyTimes.isEmpty())
+				        {
+				        	slotIsBusy = false;
+				        	break;
 				        }
 				    }
 				}
-				 
-				// If no busy times found for any attendee, add to available slots
-				availableSlots.add(DateTime.parseRfc3339(startTime));
+				
+				if(!slotIsBusy)
+				{
+					// If no busy times found for any attendee, add to available slots
+					availableSlots.add(DateTime.parseRfc3339(startTime));
+				}
+				
+				// Move to the next slot
+				startTime = endTime;
+	        	endTime = ZonedDateTime.parse(endTime).plusMinutes(slotDurationInMinutes).
+	        			 				format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 			}
 			
 			catch(IOException e)
 			{
 				e.printStackTrace();
+				
+				// prevent infinite loop in case of any error like network issues etc.
+				startTime = endTime;
+	        	endTime = ZonedDateTime.parse(endTime).plusMinutes(slotDurationInMinutes).
+	        			 				format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 			}	
 		}
 		
 		return availableSlots;
 	}
+	
+	// Schedule a meeting for multiple attendees at the next available slot
+	public String scheduleMeetingWithAttendees(String userID, List<String> attendeeEmails, String title, 
+			                      String description, DateTime availableSlot, int durationInMinutes) throws IOException 
+			    
+	{
+
+	    // Take the available slot
+	    DateTime startDateTime = availableSlot;
+	    
+	    // Calculate the end time based on duration
+	    ZonedDateTime startZoned = ZonedDateTime.parse(startDateTime.toStringRfc3339());
+	    ZonedDateTime endZoned = startZoned.plusMinutes(durationInMinutes);
+	    DateTime endDateTime = new DateTime(Date.from(endZoned.toInstant()));
+
+	    // Initialize the Calendar service
+	    Calendar service = getGoogleCalenderService(userID);
+
+	    // Build the Event object
+	    Event event = new Event()
+	        .setSummary(title)
+	        .setDescription(description);
+
+	    // Set Start Time
+	    EventDateTime start = new EventDateTime()
+	        .setDateTime(startDateTime)
+	        .setTimeZone(ZoneId.systemDefault().getId());
+	    event.setStart(start);
+
+	    // Set End Time
+	    EventDateTime end = new EventDateTime()
+	        .setDateTime(endDateTime)
+	        .setTimeZone(ZoneId.systemDefault().getId());
+	    event.setEnd(end);
+
+	    // Add Attendees
+	    List<EventAttendee> attendees = new ArrayList<>();
+	    
+	    for(String email : attendeeEmails) 
+	    {
+	        attendees.add(new EventAttendee().setEmail(email));
+	    }
+	    
+	    event.setAttendees(attendees);
+
+	    try 
+	    {
+	        // Insert the event and send email invites
+	        event = service.events().insert("primary", event)
+	                .setSendUpdates("all")  // setSendUpdates("all") triggers the email notifications to attendees
+	                .execute();
+
+	        return "Success! Meeting '" + title + "' scheduled for " + startZoned.toLocalTime() + 
+	               ". Invites have been sent to: " + String.join(", ", attendeeEmails);
+	    } 
+	    
+	    catch(IOException e) 
+	    {
+	        return "Error while creating calendar event: " + e.getMessage();
+	    }
+	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
