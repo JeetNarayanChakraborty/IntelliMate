@@ -139,7 +139,7 @@ public class CalendarTool
 	           "Use this when user asks about 'schedule a meeting', 'set up a meeting', 'arrange a meeting', or 'book a meeting'. "
 	           + "or anything related to scheduling meetings")
 	private String scheduleMeeting(String title, String description, List<String> attendeeEmails, 
-								   DateTime availableSlot, int durationInMinutes)
+								   String availableSlot, int durationInMinutes)
 	{
 		try
 		{

@@ -1,8 +1,12 @@
 package com.IntelliMate.core;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.SystemMessage;
+import dev.langchain4j.service.UserMessage;
+import dev.langchain4j.service.V;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import com.IntelliMate.core.tools.CalendarTool;
 import com.IntelliMate.core.tools.MailTool;
@@ -170,9 +174,10 @@ public class AIEngine
 			- status: confirmed/tentative/cancelled (string)
 						
 			CRITICAL: Extract structured data and format it clearly for the user. 
-			Always confirm actions before making changes.
-            """)
-        String chat(String userMessage);
+        		      Always confirm actions before making changes. 
+        		      Today's date is {{current_date}}.
+        		      Always treat the provided context date as 'Today' for all scheduling logic. """)
+        String chat(@UserMessage String userMessage, @V("current_date") String currentDate);
     }
 
     private Assistant assistant;
@@ -201,14 +206,17 @@ public class AIEngine
     	calendarTool.init(userID);
         mailTool.init(userID);
         
+        
+        String today = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy 'at' hh:mm a"));
+        
     	
-    	this.assistant = AiServices.builder(Assistant.class) // 1. Define the assistant interface
-                .chatModel(chatModel) // 2. Provide the language model
-                .tools(calendarTool, mailTool, newsTool) // 3. Register the tools
-                .chatMemory(MessageWindowChatMemory.withMaxMessages(10)) // 4. Set up chat memory
+    	this.assistant = AiServices.builder(Assistant.class) // Define the assistant interface
+                .chatModel(chatModel) // Provide the language model
+                .tools(calendarTool, mailTool, newsTool) // Register the tools
+                .chatMemory(MessageWindowChatMemory.withMaxMessages(10)) // Set up chat memory
                 .build();
     	
-        return assistant.chat(message); // Start chatting!
+        return assistant.chat(message, today); 
     }
     
     public MessageWindowChatMemory getMemory() 

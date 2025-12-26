@@ -194,6 +194,26 @@ public class GoogleCalendarService
 		// Get start time (current time)
 		String startTime = ZonedDateTime.now().
 				           format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+		
+		
+		
+		
+		
+		
+		
+		
+		ZonedDateTime now = ZonedDateTime.now();
+				System.out.println("DEBUG: The Java Server thinks today is: " + now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+
+		
+		
+		
+		
+		
+		
+		
+		
+		
 
 		// Get end time (current time + duration in minutes)
 		String endTime = ZonedDateTime.now().plusMinutes(slotDurationInMinutes).
@@ -263,12 +283,11 @@ public class GoogleCalendarService
 	
 	// Schedule a meeting for multiple attendees at the next available slot
 	public String scheduleMeetingWithAttendees(String userID, List<String> attendeeEmails, String title, 
-			                      String description, DateTime availableSlot, int durationInMinutes) throws IOException 
+			                      String description, String availableSlot, int durationInMinutes) throws IOException 
 			    
 	{
-
 	    // Take the available slot
-	    DateTime startDateTime = availableSlot;
+	    DateTime startDateTime = new DateTime(availableSlot);
 	    
 	    // Calculate the end time based on duration
 	    ZonedDateTime startZoned = ZonedDateTime.parse(startDateTime.toStringRfc3339());
