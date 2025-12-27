@@ -392,7 +392,7 @@ public class GoogleCalendarService
 	        }
 
 	        // Push the update back to Google
-	        event = service.events().update("primary", eventId, event)
+	        event = service.events().update("primary", eventId, event) // "primary" refers to the user's main calendar
 	                .setSendUpdates("all")       // Notifies attendees of the change
 	                .setConferenceDataVersion(1) // Preserves the Google Meet link
 	                .execute();
