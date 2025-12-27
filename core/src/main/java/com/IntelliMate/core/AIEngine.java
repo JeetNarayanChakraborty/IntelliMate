@@ -174,9 +174,13 @@ public class AIEngine
 			- status: confirmed/tentative/cancelled (string)
 						
 			CRITICAL: Extract structured data and format it clearly for the user. 
-        		      Always confirm actions before making changes. 
+        		      Always confirm actions before making changes. 	
+        		      The user is in India (IST). When scheduling meetings, 
+        		      always append '+05:30' to the ISO timestamp to ensure the time is not shifted to UTC. 
+        		      If the user says 12:00 PM, send '12:00:00+05:30'.
         		      Today's date is {{current_date}}.
         		      Always treat the provided context date as 'Today' for all scheduling logic. """)
+        				
         String chat(@UserMessage String userMessage, @V("current_date") String currentDate);
     }
 

@@ -7,6 +7,9 @@ import com.IntelliMate.core.service.GoogleOAuth.GoogleOAuthService;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.calendar.Calendar;
+import com.google.api.services.calendar.model.ConferenceData;
+import com.google.api.services.calendar.model.ConferenceSolutionKey;
+import com.google.api.services.calendar.model.CreateConferenceRequest;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
 import com.google.api.services.calendar.model.EventDateTime;
@@ -28,6 +31,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.ArrayList;
 
 
@@ -323,12 +327,27 @@ public class GoogleCalendarService
 	    }
 	    
 	    event.setAttendees(attendees);
+	    
+	    // Add Google Meet conference data
+	    ConferenceSolutionKey solutionKey = new ConferenceSolutionKey().setType("hangoutsMeet");
+	    
+	    // Generate a unique request ID for the conference
+	    CreateConferenceRequest createRequest = new CreateConferenceRequest()
+	            .setRequestId(UUID.randomUUID().toString()) 
+	            .setConferenceSolutionKey(solutionKey);
+	    
+	    ConferenceData conferenceData = new ConferenceData().setCreateRequest(createRequest);
+	    
+	    // Attach the conference data to the event
+	    event.setConferenceData(conferenceData);
+	    
 
 	    try 
 	    {
 	        // Insert the event and send email invites
 	        event = service.events().insert("primary", event)
-	                .setSendUpdates("all")  // setSendUpdates("all") triggers the email notifications to attendees
+	                .setSendUpdates("all")        // setSendUpdates("all") triggers the email notifications to attendees
+	                .setConferenceDataVersion(1)  // Required to trigger Meet link generation
 	                .execute();
 
 	        return "Success! Meeting '" + title + "' scheduled for " + startZoned.toLocalTime() + 
@@ -340,6 +359,75 @@ public class GoogleCalendarService
 	        return "Error while creating calendar event: " + e.getMessage();
 	    }
 	}
+	
+	//updates an event by user ID and event ID
+	public String updateMeeting(String userID, String eventId, String newTitle, String newSlot, Integer newDuration) 
+	{
+	    try 
+	    {
+	        Calendar service = getGoogleCalenderService(userID);
+
+	        // Fetch the existing event first
+	        Event event = service.events().get("primary", eventId).execute();
+
+	        // Update Title if provided
+	        if(newTitle != null && !newTitle.isEmpty()) 
+	        {
+	            event.setSummary(newTitle);
+	        }
+
+	        // Update Time/Duration if a new slot is provided
+	        if(newSlot != null && !newSlot.isEmpty()) 
+	        {
+	            DateTime startDateTime = new DateTime(newSlot);
+	            event.setStart(new EventDateTime().setDateTime(startDateTime).setTimeZone("Asia/Kolkata"));
+
+	            // Calculate new end time
+	            int duration = (newDuration != null) ? newDuration : 30; // defaults to 30 if not specified
+	            ZonedDateTime startZoned = ZonedDateTime.parse(startDateTime.toStringRfc3339());
+	            ZonedDateTime endZoned = startZoned.plusMinutes(duration);
+	            DateTime endDateTime = new DateTime(Date.from(endZoned.toInstant()));
+	            
+	            event.setEnd(new EventDateTime().setDateTime(endDateTime).setTimeZone("Asia/Kolkata"));
+	        }
+
+	        // Push the update back to Google
+	        event = service.events().update("primary", eventId, event)
+	                .setSendUpdates("all")       // Notifies attendees of the change
+	                .setConferenceDataVersion(1) // Preserves the Google Meet link
+	                .execute();
+
+	        return "Success! Meeting '" + event.getSummary() + "' has been updated. Attendees have been notified.";
+
+	    } 
+	    
+	    catch(IOException e) 
+	    {
+	        return "Error updating event: " + e.getMessage();
+	    }
+	}
+	
+	// Delete an event by event ID
+	public String deleteCalendarEvent(String userID, String eventId) 
+	{
+	    try 
+	    {
+	        // Initialize the Calendar service
+	        Calendar service = getGoogleCalenderService(userID);
+
+	        // Delete the event
+	        service.events().delete("primary", eventId) // Uses "primary" for the user's main calendar
+	                .setSendUpdates("all") // Notifies attendees that the meeting is cancelled
+	                .execute();
+
+	        return "Success! Event with ID '" + eventId + "' has been deleted and attendees notified.";
+	    } 
+	    
+	    catch(IOException e) 
+	    {
+	        return "Error while deleting calendar event: " + e.getMessage();
+	    }
+	}	
 }
 
 

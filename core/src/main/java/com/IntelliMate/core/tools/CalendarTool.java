@@ -153,6 +153,44 @@ public class CalendarTool
 			return "Failed to schedule meeting.";
 		}
 	}
+	
+	@Tool(name = "update_meeting",
+			   value = "Updates an existing meeting with new title, date/time slot, and duration in minutes. " +
+	           "Returns confirmation message with updated meeting details or error message if update fails. " +
+	           "Use this when user asks about 'update a meeting', 'reschedule a meeting', 'change meeting details', or 'modify a meeting'. " + 
+	           "or anything related to updating meetings. Requires `eventId` (retrieved via search/list) to identify the specific event to modify.")
+	private String updateMeeting(String eventId, String newTitle, String newDateTimeSlot, int newDurationInMinutes)
+	{
+		try
+		{
+			return googleCalendarService.updateMeeting(userID, eventId, newTitle, newDateTimeSlot, newDurationInMinutes);
+		}
+		
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			return "Error updating meeting.";
+		}
+	}
+	
+	@Tool(name = "cancel_meeting",
+			   value = "Cancels an existing meeting identified by eventId. " +
+	           "Returns confirmation message or error message if cancellation fails. " +
+	           "Use this when user asks about 'cancel a meeting', 'delete a meeting', 'remove a meeting', or 'call off a meeting'. " + 
+	           "or anything related to cancelling meetings. Requires `eventId` (retrieved via search/list) to identify the specific event to cancel.")
+	private String cancelMeeting(String userID, String eventId)
+	{
+		try
+		{
+			return googleCalendarService.deleteCalendarEvent(userID, eventId);
+		}
+		
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			return "Error cancelling meeting.";
+		}
+	}
 }
 
 
