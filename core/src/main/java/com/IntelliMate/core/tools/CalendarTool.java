@@ -158,7 +158,10 @@ public class CalendarTool
 			   value = "Updates an existing meeting with new title, date/time slot, and duration in minutes. " +
 	           "Returns confirmation message with updated meeting details or error message if update fails. " +
 	           "Use this when user asks about 'update a meeting', 'reschedule a meeting', 'change meeting details', or 'modify a meeting'. " + 
-	           "or anything related to updating meetings. Requires `eventId` (retrieved via search/list) to identify the specific event to modify.")
+	           "or anything related to updating meetings." +  
+	           "IMPORTANT: This tool requires a valid eventId. If you do not have the eventId, " +
+	           "you MUST first call the getTodaysEvents tool method using the user's provided title and date to retrieve " + 
+	           "the correct ID before calling this delete tool.")
 	private String updateMeeting(String eventId, String newTitle, String newDateTimeSlot, int newDurationInMinutes)
 	{
 		try
@@ -177,7 +180,10 @@ public class CalendarTool
 			   value = "Cancels an existing meeting identified by eventId. " +
 	           "Returns confirmation message or error message if cancellation fails. " +
 	           "Use this when user asks about 'cancel a meeting', 'delete a meeting', 'remove a meeting', or 'call off a meeting'. " + 
-	           "or anything related to cancelling meetings. Requires `eventId` (retrieved via search/list) to identify the specific event to cancel.")
+	           "or anything related to cancelling meetings. " + 
+	           "IMPORTANT: This tool requires a valid eventId. If you do not have the eventId, " + 
+	           "you MUST first call the getTodaysEvents tool method using the user's provided title and date to retrieve " + 
+	           "the correct ID before calling this delete tool.")
 	private String cancelMeeting(String userID, String eventId)
 	{
 		try

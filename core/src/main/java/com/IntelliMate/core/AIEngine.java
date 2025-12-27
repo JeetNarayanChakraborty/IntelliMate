@@ -179,7 +179,9 @@ public class AIEngine
         		      always append '+05:30' to the ISO timestamp to ensure the time is not shifted to UTC. 
         		      If the user says 12:00 PM, send '12:00:00+05:30'.
         		      Today's date is {{current_date}}.
-        		      Always treat the provided context date as 'Today' for all scheduling logic. """)
+        		      Always treat the provided context date as 'Today' for all scheduling logic. 
+        		      Whenever a user asks to delete or update a meeting but does not provide the technical eventId, 
+        		      always perform a search first to find the ID. Never ask the user for the ID if you can find it yourself via the calendar tools.""")
         				
         String chat(@UserMessage String userMessage, @V("current_date") String currentDate);
     }
