@@ -59,7 +59,7 @@ public class User
     private LocalDateTime lastLogin;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<ConversationHistory> conversationHistories;
+    private List<ChatSession> chatSessions;
     
     
 
@@ -202,15 +202,10 @@ public class User
         this.lastLogin = lastLogin;
     }
     
-    public List<ConversationHistory> getConversationHistories() 
-    {
-        return conversationHistories;
-    }
+   
     
-    public void setConversationHistories(List<ConversationHistory> conversationHistories) 
-    {
-        this.conversationHistories = conversationHistories;
-    }
+    
+    
 }
 
 

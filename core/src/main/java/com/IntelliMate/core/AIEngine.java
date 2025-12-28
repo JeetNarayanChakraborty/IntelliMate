@@ -4,9 +4,11 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
+import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import com.IntelliMate.core.tools.CalendarTool;
 import com.IntelliMate.core.tools.MailTool;
@@ -183,7 +185,7 @@ public class AIEngine
         		      Whenever a user asks to delete or update a meeting but does not provide the technical eventId, 
         		      always perform a search first to find the ID. Never ask the user for the ID if you can find it yourself via the calendar tools.""")
         				
-        String chat(@UserMessage String userMessage, @V("current_date") String currentDate);
+        String chat(@UserMessage String userMessage, @MemoryId String userCredential, @V("current_date") String currentDate);
     }
 
     private Assistant assistant;
@@ -192,10 +194,12 @@ public class AIEngine
     private final NewsTool newsTool;
     private final ChatModel chatModel;
     private final MessageWindowChatMemory memory;
+    private final ChatMemoryProvider memoryProvider;
 
   
     
-    public AIEngine(ChatModel chatModel, CalendarTool calendarTool, MailTool mailTool, NewsTool newsTool) 
+    public AIEngine(ChatModel chatModel, CalendarTool calendarTool, MailTool mailTool, NewsTool newsTool, 
+    				ChatMemoryProvider memoryProvider) 
     {
     	this.memory = MessageWindowChatMemory.withMaxMessages(10);
     	this.assistant = null;
@@ -203,26 +207,28 @@ public class AIEngine
     	this.mailTool = mailTool;
     	this.newsTool = newsTool;
     	this.chatModel = chatModel;
+    	this.memoryProvider = memoryProvider;
     }
 
     public String chat(String message, Map<String, Object> context) 
     {
     	String userID = (String)context.get("userID");
+    	String sessionID = (String)context.get("sessionID");
+    	String userCredential = userID + ":" + sessionID;
     	
     	calendarTool.init(userID);
         mailTool.init(userID);
         
-        
         String today = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy 'at' hh:mm a"));
         
-    	
     	this.assistant = AiServices.builder(Assistant.class) // Define the assistant interface
                 .chatModel(chatModel) // Provide the language model
                 .tools(calendarTool, mailTool, newsTool) // Register the tools
-                .chatMemory(MessageWindowChatMemory.withMaxMessages(10)) // Set up chat memory
+                .chatMemoryProvider(memoryProvider) // Set up chat memory
                 .build();
     	
-        return assistant.chat(message, today); 
+    	
+        return assistant.chat(message, userCredential, today); 
     }
     
     public MessageWindowChatMemory getMemory() 

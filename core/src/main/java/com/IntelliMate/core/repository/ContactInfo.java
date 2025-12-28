@@ -1,8 +1,5 @@
 package com.IntelliMate.core.repository;
 
-import org.springframework.stereotype.Component;
-
-
 
 
 
