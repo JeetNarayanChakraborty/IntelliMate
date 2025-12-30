@@ -1,6 +1,8 @@
 package com.IntelliMate.core.repository;
 
 import java.time.LocalDateTime;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Table;
@@ -9,45 +11,48 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
-import org.hibernate.annotations.UpdateTimestamp;
 
 
 
 
 @Entity
-@Table(name = "chat_session")
+@Table(name = "chat_sessions")
 public class ChatSession 
 {
 	@Id
 	@NotNull
+	@Column(name = "session_id")
     private String sessionId;
 
-    @Column
-    @NotNull
-    private String userId;
+	@NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "email")
+    private User user;
 
-    @Column(columnDefinition = "jsonb")
-    @NotNull
+	@JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "memory_data", columnDefinition = "jsonb")
     private String memoryData;
+	
+	@NotNull
+	@Column(name = "created_at")
+	private LocalDateTime createdAt;
 
-    @UpdateTimestamp
     @NotNull
+    @Column(name = "last_updated_at")
     private LocalDateTime lastUpdatedAt;
     
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "email")
-    private User user;
+    
     
     
     
     public ChatSession() {}
     
-    public ChatSession(String sessionId, String userId, String memoryData) 
+    public ChatSession(String sessionId, String userId, String memoryData, User user) 
 	{
 		this.sessionId = sessionId;
-		this.userId = userId;
+		this.user = user;
 		this.memoryData = memoryData;
+		this.createdAt = LocalDateTime.now();
 		this.lastUpdatedAt = LocalDateTime.now();
 	}
 
@@ -59,16 +64,6 @@ public class ChatSession
 	public void setSessionId(String sessionId) 
 	{
 		this.sessionId = sessionId;
-	}
-
-	public String getUserId() 
-	{
-		return userId;
-	}
-
-	public void setUserId(String userId) 
-	{
-		this.userId = userId;
 	}
 
 	public String getMemoryData() 
@@ -99,6 +94,16 @@ public class ChatSession
 	public void setUser(User user) 
 	{
 		this.user = user;
+	}
+	
+	public LocalDateTime getCreatedAt() 
+	{
+		return createdAt;
+	}
+	
+	public void setCreatedAt(LocalDateTime createdAt) 
+	{
+		this.createdAt = createdAt;
 	}
 }
 

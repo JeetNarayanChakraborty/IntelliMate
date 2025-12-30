@@ -32,7 +32,7 @@ public class PersistentChatMemoryStore implements ChatMemoryStore
     public List<ChatMessage> getMessages(Object userCredential) 
     {
     	String[] parts = userCredential.toString().split(":");
-    	String sessionId = parts[0];
+    	String sessionId = parts[1];
     	
         return sessionRepository.findBySessionId(sessionId.toString())
                 .map(session -> ChatMessageSerializerUtil.messagesFromJson(session.getMemoryData()))
@@ -43,15 +43,16 @@ public class PersistentChatMemoryStore implements ChatMemoryStore
     public void updateMessages(Object userCredential, List<ChatMessage> messages) 
     {
     	String[] parts = userCredential.toString().split(":");
-    	String sessionId = parts[0];
-    	String userID = parts[1];
+    	String sessionId = parts[1];
+    	String userID = parts[0];
     	
-        // Check if this is the first time we see this session
+        // Check if this is the first time this session is seen
         ChatSession session = sessionRepository.findBySessionId(sessionId)
                 .orElseGet(() -> 
                 {
                     ChatSession newSession = new ChatSession();
                     newSession.setSessionId(sessionId);
+                    newSession.setCreatedAt(LocalDateTime.now());
                     newSession.setLastUpdatedAt(LocalDateTime.now());
                     User user = userRepository.findByEmail(userID);
                     newSession.setUser(user);
