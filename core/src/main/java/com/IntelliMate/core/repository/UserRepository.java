@@ -38,6 +38,9 @@ public interface UserRepository extends JpaRepository<User, String>
     
     @Query("SELECT u FROM User u WHERE u.googleTokenExpiry > :currentTime AND u.googleAccessToken IS NOT NULL")
     List<User> findUsersWithValidTokens(@Param("currentTime") LocalDateTime currentTime);
+    
+    @Query("SELECT u FROM User u WHERE u.email = :email AND u.googleAccessToken IS NOT NULL")
+    User findUserWithUserIDAndValidGoogleToken(@Param("email") String email);
 }
 
 

@@ -13,6 +13,7 @@ import java.util.UUID;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import com.IntelliMate.core.AIEngine;
@@ -175,6 +176,29 @@ public class MainController
         }
 	}
 	
+	// Check if user has linked Google account
+	@GetMapping("/google/status")
+    public ResponseEntity<Map<String, Boolean>> getGoogleStatus(@CookieValue(name = "jwt", required = false) String token) 
+	{
+		// If cookie missing or expired token → unauthorized
+	    if(token == null || !jwtTokenService.isValid(token)) 
+	    {
+	        throw new RuntimeException("Missing or invalid JWT cookie");
+	    }
+	    
+	    // Get user ID from token
+	    String userID = jwtTokenService.extractUserInfo(token);
+	    
+	    // check if user has linked Google account
+	    
+	    if(googleOAuthService.checkGoogleConnection(userID))
+	    {
+	    	return ResponseEntity.ok(Collections.singletonMap("isConnected", true));
+	    }
+	    
+	    return ResponseEntity.ok(Collections.singletonMap("isConnected", false));
+    }
+	
     // Handle user registration
     @PostMapping("/UserRegistration")
     public ResponseEntity<Object> registerUser(@RequestParam("email") String email, @RequestParam("password") String password, 
@@ -313,7 +337,7 @@ public class MainController
         // invalidate session
         session.invalidate();
 
-        return "redirect:/login";
+        return "redirect:/api/";
     }
 }
 

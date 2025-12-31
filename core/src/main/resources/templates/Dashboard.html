@@ -573,7 +573,6 @@
         <div class="header">
             <div class="header-left">
                 <h1>IntelliMate</h1>
-                <div class="user-info" id="userEmail">Loading user info...</div>
             </div>
             <div class="header-right">
                 <button class="connect-google-btn hidden" id="connectGoogleBtn" onclick="connectGoogle()">
@@ -817,11 +816,12 @@
         });
 
         // ============================================
-        // AUTO-FOCUS INPUT ON LOAD
+        // AUTO-FOCUS INPUT AND CHECK STATUS ON LOAD
         // ============================================
         window.addEventListener('load', function() 
         {
             document.getElementById('messageInput').focus();
+            checkGoogleConnection();
         });
 
         // ============================================
@@ -837,19 +837,20 @@
                     credentials: 'include'
                 });
 
-                if (response.ok) 
+                if(response.ok) 
                 {
                     const data = await response.json();
                     const connectBtn = document.getElementById('connectGoogleBtn');
                     
                     // Show button only if user doesn't have Google connected
-                    if (!data.isConnected) 
+                    if(!data.isConnected) 
                     {
                         connectBtn.classList.remove('hidden');
                     }
                 }
             } 
-            catch (error) 
+
+            catch(error) 
             {
                 console.error('Error checking Google connection:', error);
             }
@@ -869,7 +870,7 @@
                     credentials: 'include'
                 });
 
-                if (response.ok) 
+                if(response.ok) 
                 {
                     const authUrl = await response.text();
                     

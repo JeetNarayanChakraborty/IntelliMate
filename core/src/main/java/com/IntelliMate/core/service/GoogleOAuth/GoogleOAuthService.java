@@ -169,6 +169,14 @@ public class GoogleOAuthService
         		
         if(userToken == null) throw new IOException("No user token found for user ID: " + userID);
         
+        // Check if access token is present
+        if(userToken.getGoogleAccessToken() == null) 
+		{
+			throw new IOException("Hey there, either you have not connected your Google account yet, "
+								+ "or the access token is missing. Please connect your Google account to continue using "
+								+ "IntelliMate's Google features.");
+		}
+        
         // Check if token expired
         if(userToken.getGoogleTokenExpiry().isBefore(LocalDateTime.now())) 
         {
@@ -206,7 +214,16 @@ public class GoogleOAuthService
     	User userToken = userRepository.findByEmail(userID);
         		
     	if(userToken == null) throw new IOException("No token found for user ID: " + userID);
-        
+    	
+    	
+    	// Check if access token is present
+    	if(userToken.getGoogleAccessToken() == null) 
+		{
+			throw new IOException("Hey there, either you have not connected your Google account yet, "
+								+ "or the access token is missing. Please connect your Google account to continue using "
+								+ "IntelliMate's Google features.");
+		}
+    	
         if(userToken.getGoogleRefreshToken() == null) throw new IOException("No refresh token. User needs to re-authenticate.");
         
         // Build Credential using the information from userToken
@@ -237,8 +254,15 @@ public class GoogleOAuthService
     {
         // Load the stored credential from DB
     	User userToken = userRepository.existsByEmail(userID) ? userRepository.findByEmail(userID) : null;
-        
     	
+    	// Check if access token is present
+    	if(userToken.getGoogleAccessToken() == null) 
+		{
+			throw new IOException("Hey there, either you have not connected your Google account yet, "
+								+ "or the access token is missing. Please connect your Google account to continue using "
+								+ "IntelliMate's Google features.");
+		}
+        
         if(userToken != null && userToken.getGoogleAccessToken() != null) 
         {
             try 
@@ -263,6 +287,23 @@ public class GoogleOAuthService
             }
         }
     }
+    
+    // Method to check if user has valid google connection
+    public boolean checkGoogleConnection(String userID) 
+	{
+		try 
+		{
+			User user = userRepository.findUserWithUserIDAndValidGoogleToken(userID);
+			
+			if(user != null) return true;
+			else return false;	
+		}
+		
+		catch(Exception e) 
+		{
+			return false;
+		}
+	}
 }
 
 
