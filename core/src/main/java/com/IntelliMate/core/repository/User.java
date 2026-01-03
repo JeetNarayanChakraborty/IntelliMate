@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.OneToMany;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -66,14 +67,14 @@ public class User
     public User() {}
     
     // Constructor for manual registration
-    public User(String email, String password, LocalDateTime createdAt) 
+    public User(String email, String password, LocalDateTime createdAt, LocalDateTime updatedAt) 
     {
         this.id = UUID.randomUUID().toString();
         this.email = email;
         this.password = password;
         this.authMethod = "manual";
         this.createdAt = createdAt;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = updatedAt;
     }
     
     // Constructor for Google registration
@@ -85,10 +86,10 @@ public class User
         this.googleId = googleId;
         this.googleAccessToken = googleAccessToken;
         this.googleRefreshToken = googleRefreshToken;
-        this.googleTokenExpiry = LocalDateTime.now().plusSeconds(googleTokenExpiry);
+        this.googleTokenExpiry = LocalDateTime.now(ZoneId.of("Asia/Kolkata")).plusSeconds(googleTokenExpiry);
         this.authMethod = "google";
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+        this.updatedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
     }
     
     
@@ -201,11 +202,6 @@ public class User
     {
         this.lastLogin = lastLogin;
     }
-    
-   
-    
-    
-    
 }
 
 

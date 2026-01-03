@@ -7,12 +7,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.stereotype.Controller;
 import com.IntelliMate.core.service.JWTService.JWTTokenService;
+import com.IntelliMate.core.service.UserService.UserService;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import java.util.UUID;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +28,8 @@ import com.IntelliMate.core.repository.UserRepository;
 import com.IntelliMate.core.service.EncryptionService.JasyptEncryptionService;
 import com.IntelliMate.core.service.GoogleOAuth.GoogleOAuthService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -38,17 +46,23 @@ public class MainController
 	private final JWTTokenService jwtTokenService;
 	private final UserRepository userRepository;
 	private final JasyptEncryptionService jasyptEncryptionService;
+	private final RememberMeServices rememberMeService;
+	private final UserService userService;
 	
 	
 	public MainController(AIEngine aiEngine, GoogleOAuthService googleOAuthService, 
 			              JWTTokenService jwtTokenService, UserRepository userRepository,
-			              JasyptEncryptionService jasyptEncryptionService) 
+			              JasyptEncryptionService jasyptEncryptionService,
+			              RememberMeServices rememberMeService,
+			              UserService userService) 
 	{
 		this.aiEngine = aiEngine;
 		this.googleOAuthService = googleOAuthService;
 		this.jwtTokenService = jwtTokenService;
 		this.userRepository = userRepository;
 		this.jasyptEncryptionService = jasyptEncryptionService;
+		this.rememberMeService = rememberMeService;
+	    this.userService = userService;
 	}
 	
 	// Serve login page
@@ -68,6 +82,8 @@ public class MainController
 	// Serve dashboard page
 	@GetMapping("/dashboard")
 	public String getDashboardPage(@RequestParam("token") String jwtToken,
+								   @RequestParam(value = "rememberMe", defaultValue = "false") boolean rememberMe,
+								   HttpServletRequest request,
 			                       HttpServletResponse response)
 	{
 		// Create JWT token in secure HttpOnly cookie
@@ -78,7 +94,25 @@ public class MainController
 		cookie.setPath("/");               			// valid for all endpoints
 		cookie.setMaxAge(7 * 24 * 60 * 60);        	// 7 days
 		response.addCookie(cookie);
+		
+		
+		if(rememberMe)
+		{
+			// Extract user info from JWT
+		    String userEmail = jwtTokenService.extractUserInfo(jwtToken);
+		    
+		    // Load the UserDetails from your UserService
+		    UserDetails userDetails = userService.loadUserByUsername(userEmail);
+		    
+		    // Create an Authentication object for Spring Security to "see" the login
+		    Authentication auth = new UsernamePasswordAuthenticationToken(
+		            userDetails, null, userDetails.getAuthorities());
 
+		    // Manually trigger Remember Me functionality
+		    rememberMeService.loginSuccess(new HttpServletRequestWrapper(request) 
+		    { @Override public String getParameter(String n) { return "true"; } }, response, auth);
+		}
+	    
 		return "Dashboard"; 
 	}
 	
@@ -125,12 +159,15 @@ public class MainController
 	            newUser.setGoogleAccessToken(googleUser.getGoogleAccessToken());
 	            newUser.setGoogleRefreshToken(googleUser.getGoogleRefreshToken());
 	            newUser.setGoogleTokenExpiry(googleUser.getGoogleTokenExpiry());
-	            newUser.setLastLogin(LocalDateTime.now());
+	            newUser.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
+	            newUser.setUpdatedAt(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
+	            newUser.setLastLogin(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
 	            newUser.setAuthMethod("google");
 	            
 	            userRepository.save(newUser);
 	            
-	            // Generate JWT for YOUR app
+	   	            
+	            // Generate JWT using new user ID
 	            String jwtToken = jwtTokenService.generateToken(newUser.getEmail());
 	            
 	            String redirectUrl = "http://localhost:8080/api/dashboard?token=" + jwtToken;
@@ -149,7 +186,6 @@ public class MainController
 	            existingUser.setGoogleRefreshToken(googleUser.getGoogleRefreshToken());
 	            existingUser.setGoogleTokenExpiry(googleUser.getGoogleTokenExpiry());
 	            existingUser.setAuthMethod("both");  // Now supports both methods
-	            existingUser.setLastLogin(LocalDateTime.now());
 	            
 	            userRepository.save(existingUser);
 	            
@@ -157,6 +193,7 @@ public class MainController
 	            String jwtToken = jwtTokenService.generateToken(existingUser.getEmail());
 	            
 	            String redirectUrl = "http://localhost:8080/api/dashboard?token=" + jwtToken;
+	            
 	            
 	            // Redirect to dashboard with JWT token
 	            return ResponseEntity.status(302)
@@ -190,7 +227,6 @@ public class MainController
 	    String userID = jwtTokenService.extractUserInfo(token);
 	    
 	    // check if user has linked Google account
-	    
 	    if(googleOAuthService.checkGoogleConnection(userID))
 	    {
 	    	return ResponseEntity.ok(Collections.singletonMap("isConnected", true));
@@ -208,7 +244,10 @@ public class MainController
 		String userPassword = password;
 		String encryptedUserPassword = jasyptEncryptionService.encrypt(userPassword);
 		
-		User newUser = new User(userName, encryptedUserPassword, LocalDateTime.now());
+		User newUser = new User(userName, encryptedUserPassword, LocalDateTime.now(ZoneId.of("Asia/Kolkata")), 
+								LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
+		
+		newUser.setLastLogin(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
 		
 		// Save user to database
 		userRepository.save(newUser);
@@ -218,6 +257,8 @@ public class MainController
 		
 		// Redirect to dashboard with JWT token
 		String redirectUrl = "http://localhost:8080/api/dashboard?token=" + jwtToken;
+		
+		
         
         return ResponseEntity.status(302)
             .header("Location", redirectUrl)
@@ -226,7 +267,9 @@ public class MainController
     
     // Handle user login
     @PostMapping("/UserLogin")
-    public ResponseEntity<Object> userLogin(@RequestParam String email, @RequestParam String password)
+    public ResponseEntity<Object> userLogin(@RequestParam String email, 
+    										@RequestParam String password,
+    										HttpServletRequest request)
     {
     	String inputEmail = email;
     	String inputPassword = password;
@@ -250,8 +293,15 @@ public class MainController
     		// Create JWT token for the user
     		String jwtToken = jwtTokenService.generateToken(email);
     			
-    		// Redirect to dashboard with JWT token
-    		String redirectUrl = "http://localhost:8080/api/dashboard?token=" + jwtToken;
+    		// Set last login time
+    		user.setLastLogin(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
+    		
+    		// see if "Remember Me" was checked
+    		boolean rememberMe = request.getParameter("remember-me") != null;
+    		  		
+    		// Redirect to dashboard with JWT token and rememberMe flag
+    		String redirectUrl = "http://localhost:8080/api/dashboard?token=" + jwtToken + "&rememberMe=" + rememberMe;
+    		
     	        
     	    return ResponseEntity.status(302)
     	        .header("Location", redirectUrl)

@@ -33,11 +33,11 @@ public class GeminiConfig
         try 
         {
             // Read the API key from the file path
-            String apiKeyContent = Files.readString(Paths.get(apiKeyPath)).trim();
+            String geminiApiKey = Files.readString(Paths.get(apiKeyPath)).trim();
 
             // 2. Build the model
             return GoogleAiGeminiChatModel.builder()
-                    .apiKey(apiKeyContent)
+                    .apiKey(geminiApiKey)
                     .modelName("gemini-2.5-flash-lite")
                     .logRequestsAndResponses(true)
                     .temperature(0.7)
