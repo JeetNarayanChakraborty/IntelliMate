@@ -12,12 +12,11 @@ import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.stereotype.Controller;
 import com.IntelliMate.core.service.JWTService.JWTTokenService;
 import com.IntelliMate.core.service.UserService.UserService;
-
+import com.IntelliMate.core.service.MailService.MailSendAndGetService;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-
 import java.util.UUID;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
@@ -31,6 +30,8 @@ import com.IntelliMate.core.repository.User;
 import com.IntelliMate.core.repository.UserRepository;
 import com.IntelliMate.core.service.EncryptionService.JasyptEncryptionService;
 import com.IntelliMate.core.service.GoogleOAuth.GoogleOAuthService;
+
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
@@ -52,12 +53,14 @@ public class MainController
 	private final JasyptEncryptionService jasyptEncryptionService;
 	private final RememberMeServices rememberMeService;
 	private final UserService userService;
+	private final MailSendAndGetService mailSendAndGetService;
 	
 	
 	public MainController(AIEngine aiEngine, GoogleOAuthService googleOAuthService, 
 			              JWTTokenService jwtTokenService, UserRepository userRepository,
 			              JasyptEncryptionService jasyptEncryptionService,
 			              RememberMeServices rememberMeService,
+			              MailSendAndGetService mailSendAndGetService,
 			              UserService userService) 
 	{
 		this.aiEngine = aiEngine;
@@ -67,6 +70,7 @@ public class MainController
 		this.jasyptEncryptionService = jasyptEncryptionService;
 		this.rememberMeService = rememberMeService;
 	    this.userService = userService;
+	    this.mailSendAndGetService = mailSendAndGetService;
 	}
 	
 	
@@ -201,6 +205,25 @@ public class MainController
 	            // Generate JWT using new user ID
 	            String jwtToken = jwtTokenService.generateToken(newUser.getEmail());
 	            
+	            
+	            String to = googleUser.getEmail();
+	    		String subject = "Welcome to IntelliMate!";
+	    		String body = "Dear User,\n\n"
+	    				    + "Welcome to IntelliMate! We're thrilled to have you on board.\n\n"
+	    				    + "Best Regards,\n"
+	    				    + "The IntelliMate Team";
+	    		
+	    		// send welcome mail
+	    		try 
+	    		{
+	    			mailSendAndGetService.sendMail(to, to, subject, body, null);
+	    		} 
+	    		
+	    		catch(Exception e) 
+	    		{
+	    			e.printStackTrace();
+	    		}
+	            
 	            String redirectUrl = "http://localhost:8080/api/dashboard?token=" + jwtToken;
 	            
 	            // Redirect to dashboard with JWT token
@@ -286,10 +309,27 @@ public class MainController
 		// Create JWT token for the user
 		String jwtToken = jwtTokenService.generateToken(userName);
 		
+		// send a mail to user welcoming them
+		
+		String to = userName;
+		String subject = "Welcome to IntelliMate!";
+		String body = "Dear User,\n\n"
+				    + "Welcome to IntelliMate! We're thrilled to have you on board.\n\n"
+				    + "Best Regards,\n"
+				    + "The IntelliMate Team";
+		
+		try 
+		{
+			mailSendAndGetService.sendMail(userName, to, subject, body, null);
+		} 
+		
+		catch(Exception e) 
+		{
+			e.printStackTrace();
+		} 
+		
 		// Redirect to dashboard with JWT token
 		String redirectUrl = "http://localhost:8080/api/dashboard?token=" + jwtToken;
-		
-		
         
         return ResponseEntity.status(302)
             .header("Location", redirectUrl)
