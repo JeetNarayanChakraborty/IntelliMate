@@ -14,6 +14,8 @@ import com.IntelliMate.core.service.JWTService.JWTTokenService;
 import com.IntelliMate.core.service.UserService.UserService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.util.UUID;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
@@ -96,7 +98,7 @@ public class MainController
 		response.addCookie(cookie);
 		
 		
-		if(rememberMe)
+		if(rememberMe || request.getSession().getAttribute("REMEMBER_ME_FLAG") != null)
 		{
 			// Extract user info from JWT
 		    String userEmail = jwtTokenService.extractUserInfo(jwtToken);
@@ -112,18 +114,22 @@ public class MainController
 		    rememberMeService.loginSuccess(new HttpServletRequestWrapper(request) 
 		    { @Override public String getParameter(String n) { return "true"; } }, response, auth);
 		}
-	    
+		
 		return "Dashboard"; 
 	}
 	
 	// Get the Google OAuth login URL
 	@GetMapping("/google/login")
-    public ResponseEntity<String> initiateGoogleLogin() 
+    public ResponseEntity<String> initiateGoogleLogin(@RequestParam(defaultValue = "false") boolean rememberMe, 
+            										  HttpServletRequest request) 
 	{
         try 
         {
             // Generate Google's authorization URL
             String authUrl = googleOAuthService.getAuthorizationUrl();
+            
+            // Store rememberMe flag in session for later use
+            request.getSession().setAttribute("REMEMBER_ME_FLAG", rememberMe);
             
             // Return URL to frontend
             return ResponseEntity.ok(authUrl);
@@ -376,13 +382,25 @@ public class MainController
 	
 	// Handle user logout
 	@GetMapping("/logout")
-    public String logout(HttpSession session, HttpServletResponse response) 
+    public String logout(HttpSession session, 
+    					 HttpServletRequest request,	
+    					 HttpServletResponse response,
+    					 Authentication authentication) 
 	{
         // delete JWT cookie
         Cookie cookie = new Cookie("jwt", null);
         cookie.setMaxAge(0);
         cookie.setPath("/");
         response.addCookie(cookie);
+        
+        if(rememberMeService != null) 
+		{
+			// Invalidate Remember Me cookie
+			rememberMeService.loginFail(request, response);
+		}
+        
+        // Clear authentication info from SecurityContext
+        SecurityContextHolder.clearContext();  
 
         // invalidate session
         session.invalidate();

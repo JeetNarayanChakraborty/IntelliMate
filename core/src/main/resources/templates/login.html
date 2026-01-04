@@ -471,7 +471,9 @@
 
             try 
             {
-                const response = await fetch('[[@{/api/google/login}]]');
+                const baseUrl = "[[@{/api/google/login}]]"; 
+                const isChecked = document.getElementById('remember-me').checked;
+                const response = await fetch(`${baseUrl}?rememberMe=${isChecked}`);
                 const authUrl = await response.text();
                 window.location.href = authUrl;
             } 
