@@ -19,19 +19,21 @@ public class UserService implements UserDetailsService
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException 
     {
-        // Fetch user by email (this you must have)
     	User user = userRepository.findByEmail(email);
     	
     	if(user == null) throw new UsernameNotFoundException("User not found: " + email);
+    	
+    	String password = (user.getPassword() != null) ? user.getPassword() : "OAUTH2_USER";
 
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail())
-                .password(user.getPassword()) 
+                .password(password) 
                 .roles("USER")   
                 .disabled(false)
                 .build();
     }
 }
+
 
 
 

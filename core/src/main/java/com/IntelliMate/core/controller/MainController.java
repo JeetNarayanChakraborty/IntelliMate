@@ -12,6 +12,8 @@ import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.stereotype.Controller;
 import com.IntelliMate.core.service.JWTService.JWTTokenService;
 import com.IntelliMate.core.service.UserService.UserService;
+
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -67,6 +69,15 @@ public class MainController
 	    this.userService = userService;
 	}
 	
+	
+	
+	// Serve home page
+	@GetMapping("/home")
+	public String getHomePage() 
+	{
+		return "HomePage"; 
+	}
+	
 	// Serve login page
 	@GetMapping("/")
 	public String getLoginPage() 
@@ -79,6 +90,20 @@ public class MainController
 	public String getRegistrationPage() 
 	{
 		return "registration"; 
+	}
+	
+	@GetMapping("/isAuthenticated")
+	public String isAuthenticated(Authentication authentication) 
+	{
+	    // Check if the user is logged in (either by valid JWT or by Remember-Me)
+	    if(authentication != null && authentication.isAuthenticated() 
+	        && !(authentication instanceof AnonymousAuthenticationToken)) 
+	    {
+	        
+	        return "Dashboard"; // User is authenticated, serve dashboard
+	    }
+
+	    return "redirect:/api/"; // Redirect to login page
 	}
 	
 	// Serve dashboard page

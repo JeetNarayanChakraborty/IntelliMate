@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomePage</title>
+    <style>
+        * 
+        {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body 
+        {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .hero-container 
+        {
+            text-align: center;
+            color: white;
+            animation: slideUp 1s ease-out;
+        }
+
+        @keyframes slideUp 
+        {
+            from 
+            {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to 
+            {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 
+        {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+        }
+
+        p 
+        {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        .continue-btn 
+        {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 40px;
+            background: white;
+            color: #1a3a52;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .continue-btn:hover 
+        {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            background: #f8f8f8;
+        }
+
+        .continue-btn:active 
+        {
+            transform: scale(0.98);
+        }
+
+        .arrow 
+        {
+            transition: transform 0.3s ease;
+        }
+
+        .continue-btn:hover .arrow 
+        {
+            transform: translateX(5px);
+        }
+
+        .continue-btn.loading 
+        {
+            color: transparent;
+            pointer-events: none;
+        }
+
+        .continue-btn.loading::after 
+        {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #1a3a52;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin 
+        {
+            to { transform: rotate(360deg); }
+        }
+
+        .footer-brand 
+        {
+            position: absolute;
+            bottom: 40px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.6;
+            color: white;
+        }
+
+        .brand-logo 
+        {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .brand-logo span 
+        {
+            font-weight: 300;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <a href="#" class="brand-logo">Intelli<span>Mate</span></a>
+    <div class="hero-container">
+        <h1>Simplify Your Workflow.</h1>
+        
+        <button id="continueBtn" class="continue-btn">
+            Continue 
+            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+        </button>
+    </div>
+
+    <div class="footer-brand">© 2025 INTELLIMATE. ALL RIGHTS RESERVED</div>
+
+
+    <script th:inline="javascript">
+        document.getElementById('continueBtn').addEventListener('click', function() 
+        {
+            this.classList.add('loading');           
+            const targetUrl = /*[[@{/api/isAuthenticated}]]*/ '/api/isAuthenticated';
+            window.location.href = targetUrl;
+        });
+    </script>
+</body>
+</html>

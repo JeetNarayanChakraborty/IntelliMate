@@ -79,7 +79,6 @@
         .right-section 
         {
             flex: 1;
-            background: url('https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800&q=80') center/cover;
             min-height: 600px;
             position: relative;
             animation: fadeIn 1.2s ease-out;
@@ -89,17 +88,6 @@
         {
             from { opacity: 0; }
             to { opacity: 1; }
-        }
-
-        .right-section::before 
-        {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 100%);
         }
 
         h1 
@@ -378,17 +366,85 @@
             animation: spin 0.6s linear infinite;
         }
 
-        @keyframes spin {
+        @keyframes spin 
+        {
             to { transform: rotate(360deg); }
+        }
+
+        .right-section 
+        {
+            flex: 1.2; 
+            background: #fdfeff; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            border-left: 1px solid #f0f0f0;
+        }
+
+        .right-section::after 
+        {
+            content: '';
+            position: absolute;
+            width: 800px; 
+            height: 800px;
+            background: radial-gradient(circle at center, 
+                        rgba(102, 126, 234, 0.18) 0%, 
+                        rgba(118, 75, 162, 0.12) 40%, 
+                        transparent 70%);
+            filter: blur(60px); /* Smoother blur */
+            border-radius: 50%;
+            z-index: 1;
+            animation: moveShape 15s infinite alternate ease-in-out;
+        }
+
+        @keyframes moveShape 
+        {
+            0% { transform: translate(-20%, -20%) scale(1); }
+            100% { transform: translate(20%, 20%) scale(1.1); }
+        }
+
+        .right-content 
+        {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .feature-card 
+        {
+            background: rgba(255, 255, 255, 0.6); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
+            max-width: 420px;
+            text-align: center;
+        }
+
+        .feature-card h2 
+        {
+            color: #1a3a52;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .feature-card p 
+        {
+            color: #64748b;
+            font-size: 16px;
+            line-height: 1.6;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="left-section">
-            <h1>Welcome Back 👋</h1>
-            <p class="subtitle">Today is a new day. It's your day. You shape it.<br>Sign in to start managing your projects.</p>
-
             <div th:if="${error}" style="color: #dc3545; background: #f8d7da; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none;" th:style="'display: block; color: #dc3545; background: #f8d7da; padding: 12px; border-radius: 8px; margin-bottom: 20px;'">  
                 <span th:text="${error}">Invalid credentials</span>
             </div>
@@ -441,10 +497,14 @@
                 © 2025 ALL RIGHTS RESERVED
             </div>
         </div>
-
-        <div class="right-section"></div>
-    </div>
-
+            <div class="right-section">
+                <div class="right-content">
+                    <div class="feature-card">
+                        <p>Built for speed, designed for clarity</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     <script>
         document.getElementById('loginForm').addEventListener('submit', function(e) 
         {
@@ -454,14 +514,6 @@
             {
                 btn.classList.remove('loading');
             }, 1500);
-        });
-
-        document.addEventListener('mousemove', function(e) 
-        {
-            const rightSection = document.querySelector('.right-section');
-            const x = e.clientX / window.innerWidth;
-            const y = e.clientY / window.innerHeight;
-            rightSection.style.backgroundPosition = `${50 + x * 5}% ${50 + y * 5}%`;
         });
 
         // Google Sign-in Button
