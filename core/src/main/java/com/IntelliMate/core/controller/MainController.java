@@ -30,9 +30,8 @@ import com.IntelliMate.core.repository.User;
 import com.IntelliMate.core.repository.UserRepository;
 import com.IntelliMate.core.service.EncryptionService.JasyptEncryptionService;
 import com.IntelliMate.core.service.GoogleOAuth.GoogleOAuthService;
-
-import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
@@ -87,6 +86,63 @@ public class MainController
 	public String getLoginPage() 
 	{
 		return "login"; 
+	}
+	
+	@GetMapping("/usernameInputForPasswordReset")
+	public String getUsernameInputForPasswordResetPage()
+	{
+		return "UsernameInputForPasswordReset";
+	}
+	
+	@GetMapping("/getPasswordResetMail")
+	public ResponseEntity<String> RehandleGetPasswordResetMail(@RequestParam("email") String email, HttpSession session)
+	{
+		String to = email;
+		String subject = "IntelliMate Password Reset Request";
+		String body = "Dear User,\n\n"
+				    + "We received a request to reset your password. Please click the link below to reset your password:\n"
+				    + "http://localhost:8080/api/resetPassword\n\n"
+				    + "If you did not request a password reset, please ignore this email.\n\n"
+				    + "Best Regards,\n"
+				    + "The IntelliMate Team";
+		
+		try 
+		{
+			mailSendAndGetService.sendMail("chakra.n.jeet@gmail.com", to, subject, body, null);
+		} 
+		
+		catch(Exception e) 
+		{
+			e.printStackTrace();
+		} 
+		
+		
+		session.setAttribute("Email", email);
+		
+		
+		String htmlResponse = """
+	            <html>
+	                <body style="font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh;">
+	                    <div style="text-align: center; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
+	                        <h2 style="color: #28a745;">Success!</h2>
+	                        <p>A reset link has been sent to your registered email.</p>
+	                        <a href="/login" style="color: #4285f4; text-decoration: none;">Return to Login</a>
+	                    </div>
+	                </body>
+	            </html>
+	            """;
+
+	    return ResponseEntity
+	            .status(HttpStatus.OK)
+	            .header("Content-Type", "text/html")
+	            .body(htmlResponse);
+	}
+	
+	// Serve reset password page
+	@GetMapping("/resetPassword")
+	public String getResetPasswordPage() 
+	{
+		return "ForgotPassword"; 
 	}
 	
 	// Serve registration page
@@ -216,7 +272,7 @@ public class MainController
 	    		// send welcome mail
 	    		try 
 	    		{
-	    			mailSendAndGetService.sendMail(to, to, subject, body, null);
+	    			mailSendAndGetService.sendMail("chakra.n.jeet@gmail.com", to, subject, body, null);
 	    		} 
 	    		
 	    		catch(Exception e) 
@@ -310,7 +366,6 @@ public class MainController
 		String jwtToken = jwtTokenService.generateToken(userName);
 		
 		// send a mail to user welcoming them
-		
 		String to = userName;
 		String subject = "Welcome to IntelliMate!";
 		String body = "Dear User,\n\n"
@@ -320,7 +375,10 @@ public class MainController
 		
 		try 
 		{
-			mailSendAndGetService.sendMail(userName, to, subject, body, null);
+			mailSendAndGetService.sendMail("chakra.n.jeet@gmail.com", "jnc.chakra@gmail.com", subject, body, null);
+			
+			
+			System.out.println("Welcome email sent to " + to);
 		} 
 		
 		catch(Exception e) 
@@ -387,6 +445,70 @@ public class MainController
     			    .header(HttpHeaders.LOCATION, "http://localhost:8080/?error=invalid_credentials")
     			    .build();
 		}
+    }
+    
+    @PostMapping("/handleResetPassword")
+    public ResponseEntity<Object> handleResetPassword(@RequestParam("confirmPassword") String newPassword,
+    												  HttpSession session)				
+    {
+    	// Get email from session
+    	String email = session.getAttribute("Email").toString();
+    	
+    	User user = userRepository.findByEmail(email);
+    	
+    	if(user == null)
+    	{
+    		return ResponseEntity
+    		       .status(HttpStatus.NOT_FOUND)
+    		       .body("User not found. Please check the details and try again.");
+
+    	}
+    	
+    	String encryptedNewPassword = jasyptEncryptionService.encrypt(newPassword);
+    	
+    	// Update user's password in database
+    	user.setPassword(encryptedNewPassword);
+    	
+    	userRepository.save(user);
+    	
+    
+    	// send a mail to user notifying password reset
+		String to = email;
+		String subject = "Your IntelliMate Password Has Been Reset";
+		String body = "Dear User,\n\n"
+				    + "Your password has been successfully reset. If you did not initiate this change, please contact our support team immediately.\n\n"
+				    + "Best Regards,\n"
+				    + "The IntelliMate Team";
+		
+		try 
+		{
+			mailSendAndGetService.sendMail("chakra.n.jeet@gmail.com", to, subject, body, null);
+		} 
+		
+		catch(Exception e) 
+		{
+			e.printStackTrace();
+		} 
+
+		// After successful password reset, generate a new JWT token
+    	String jwtToken = jwtTokenService.generateToken(email);
+    	
+    	
+    	
+    	
+    	System.out.println("Password reset successful for user: " + email + ", new password: " + newPassword);
+    	
+    	
+    	
+    	
+    	
+    	
+    	// Redirect to dashboard with JWT token
+    	String redirectUrl = "http://localhost:8080/api/dashboard?token=" + jwtToken;
+		
+		return ResponseEntity.status(302)
+			.header("Location", redirectUrl)
+			.build();
     }
     
     // Handle chat messages
