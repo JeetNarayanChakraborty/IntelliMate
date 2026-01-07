@@ -122,7 +122,7 @@ public class MainController
 		
 		session.setAttribute("Email", email);
 		
-		
+		// Return HTML response
 		String htmlResponse = """
 	            <html>
 	                <body style="font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh;">
