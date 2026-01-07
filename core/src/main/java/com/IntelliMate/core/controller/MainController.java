@@ -267,15 +267,47 @@ public class MainController
 	            
 	            String to = googleUser.getEmail();
 	    		String subject = "Welcome to IntelliMate!";
-	    		String body = "Dear User,\n\n"
-	    				    + "Welcome to IntelliMate! We're thrilled to have you on board.\n\n"
-	    				    + "Best Regards,\n"
-	    				    + "The IntelliMate Team";
+	    		String body = "<!DOCTYPE html>" +
+	    			    "<html>" +
+	    			    "<head><meta charset=\"UTF-8\"></head>" +
+	    			    "<body style=\"margin: 0; padding: 0; background-color: #f4f7f9; font-family: 'Segoe UI', Helvetica, Arial, sans-serif;\">" +
+	    			    "    <table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" style=\"max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);\">" +
+	    			    "        <tr>" +
+	    			    "            <td align=\"center\" style=\"padding: 40px 20px; background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);\">" +
+	    			    "                <h1 style=\"color: #ffffff; margin: 0; font-size: 32px; letter-spacing: 2px; text-transform: uppercase;\">IntelliMate</h1>" +
+	    			    "                <p style=\"color: rgba(255,255,255,0.9); margin-top: 10px; font-size: 16px;\">Your AI Journey Starts Here</p>" +
+	    			    "            </td>" +
+	    			    "        </tr>" +
+	    			    "        <tr>" +
+	    			    "            <td style=\"padding: 40px 30px;\">" +
+	    			    "                <h2 style=\"color: #333333; margin-top: 0; font-size: 24px;\">Welcome to the future of productivity!</h2>" +
+	    			    "                <p style=\"color: #555555; font-size: 16px; line-height: 1.6;\">" +
+	    			    "                    Hello,<br><br>" +
+	    			    "                    We're thrilled to have you on board. <strong>IntelliMate</strong> is your new AI-powered partner, designed to bridge the gap between complex tasks and seamless execution." +
+	    			    "                </p>" +
+	    			    "                <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin: 25px 0;\">" +
+	    			    "                    <tr><td style=\"padding: 10px 0; border-bottom: 1px solid #eeeeee;\"><span style=\"color: #b21f1f; font-weight: bold;\">✔</span> <strong>Smart Mail:</strong> AI drafted emails.</td></tr>" +
+	    			    "                    <tr><td style=\"padding: 10px 0; border-bottom: 1px solid #eeeeee;\"><span style=\"color: #b21f1f; font-weight: bold;\">✔</span> <strong>Gemini Chat:</strong> Deep-dive with your assistant.</td></tr>" +
+	    			    "                    <tr><td style=\"padding: 10px 0;\"><span style=\"color: #b21f1f; font-weight: bold;\">✔</span> <strong>Seamless Integration:</strong> Your tools, now smarter.</td></tr>" +
+	    			    "                </table>" +
+	    			    "                <div style=\"text-align: center; margin-top: 35px;\">" +
+	    			    "                    <a href=\"https://your-app-domain.com/login\" style=\"background-color: #1a2a6c; color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;\">Explore Your Dashboard</a>" +
+	    			    "                </div>" +
+	    			    "            </td>" +
+	    			    "        </tr>" +
+	    			    "        <tr>" +
+	    			    "            <td align=\"center\" style=\"padding: 30px; background-color: #f9f9f9; border-top: 1px solid #eeeeee;\">" +
+	    			    "                <p style=\"margin: 0; color: #999999; font-size: 12px;\">© 2026 IntelliMate AI Inc.<br>You received this email because you signed up.</p>" +
+	    			    "            </td>" +
+	    			    "        </tr>" +
+	    			    "    </table>" +
+	    			    "</body>" +
+	    			    "</html>";
 	    		
 	    		// send welcome mail
 	    		try 
 	    		{
-	    			systemMailService.sendEmail(to, subject, body);
+	    			systemMailService.sendEmailWithHTML(to, subject, body);
 	    		} 
 	    		
 	    		catch(Exception e) 
@@ -371,14 +403,46 @@ public class MainController
 		// send a mail to user welcoming them
 		String to = userName;
 		String subject = "Welcome to IntelliMate!";
-		String body = "Dear User,\n\n"
-				    + "Welcome to IntelliMate! We're thrilled to have you on board.\n\n"
-				    + "Best Regards,\n"
-				    + "The IntelliMate Team";
+		String body = "<!DOCTYPE html>" +
+			    "<html>" +
+			    "<head><meta charset=\"UTF-8\"></head>" +
+			    "<body style=\"margin: 0; padding: 0; background-color: #f4f7f9; font-family: 'Segoe UI', Helvetica, Arial, sans-serif;\">" +
+			    "    <table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" style=\"max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);\">" +
+			    "        <tr>" +
+			    "            <td align=\"center\" style=\"padding: 40px 20px; background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);\">" +
+			    "                <h1 style=\"color: #ffffff; margin: 0; font-size: 32px; letter-spacing: 2px; text-transform: uppercase;\">IntelliMate</h1>" +
+			    "                <p style=\"color: rgba(255,255,255,0.9); margin-top: 10px; font-size: 16px;\">Your AI Journey Starts Here</p>" +
+			    "            </td>" +
+			    "        </tr>" +
+			    "        <tr>" +
+			    "            <td style=\"padding: 40px 30px;\">" +
+			    "                <h2 style=\"color: #333333; margin-top: 0; font-size: 24px;\">Welcome to the future of productivity!</h2>" +
+			    "                <p style=\"color: #555555; font-size: 16px; line-height: 1.6;\">" +
+			    "                    Hello,<br><br>" +
+			    "                    We're thrilled to have you on board. <strong>IntelliMate</strong> is your new AI-powered partner, designed to bridge the gap between complex tasks and seamless execution." +
+			    "                </p>" +
+			    "                <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin: 25px 0;\">" +
+			    "                    <tr><td style=\"padding: 10px 0; border-bottom: 1px solid #eeeeee;\"><span style=\"color: #b21f1f; font-weight: bold;\">✔</span> <strong>Smart Mail:</strong> AI drafted emails.</td></tr>" +
+			    "                    <tr><td style=\"padding: 10px 0; border-bottom: 1px solid #eeeeee;\"><span style=\"color: #b21f1f; font-weight: bold;\">✔</span> <strong>Gemini Chat:</strong> Deep-dive with your assistant.</td></tr>" +
+			    "                    <tr><td style=\"padding: 10px 0;\"><span style=\"color: #b21f1f; font-weight: bold;\">✔</span> <strong>Seamless Integration:</strong> Your tools, now smarter.</td></tr>" +
+			    "                </table>" +
+			    "                <div style=\"text-align: center; margin-top: 35px;\">" +
+			    "                    <a href=\"https://your-app-domain.com/login\" style=\"background-color: #1a2a6c; color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;\">Explore Your Dashboard</a>" +
+			    "                </div>" +
+			    "            </td>" +
+			    "        </tr>" +
+			    "        <tr>" +
+			    "            <td align=\"center\" style=\"padding: 30px; background-color: #f9f9f9; border-top: 1px solid #eeeeee;\">" +
+			    "                <p style=\"margin: 0; color: #999999; font-size: 12px;\">© 2026 IntelliMate AI Inc.<br>You received this email because you signed up.</p>" +
+			    "            </td>" +
+			    "        </tr>" +
+			    "    </table>" +
+			    "</body>" +
+			    "</html>";
 		
 		try 
 		{
-			systemMailService.sendEmail(to, subject, body);
+			systemMailService.sendEmailWithHTML(to, subject, body);
 		} 
 		
 		catch(Exception e) 
