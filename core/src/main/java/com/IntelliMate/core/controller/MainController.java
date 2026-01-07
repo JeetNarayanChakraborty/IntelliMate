@@ -13,6 +13,8 @@ import org.springframework.stereotype.Controller;
 import com.IntelliMate.core.service.JWTService.JWTTokenService;
 import com.IntelliMate.core.service.UserService.UserService;
 import com.IntelliMate.core.service.MailService.MailSendAndGetService;
+import com.IntelliMate.core.service.SystemMailService.SystemMailService;
+
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -31,7 +33,6 @@ import com.IntelliMate.core.repository.UserRepository;
 import com.IntelliMate.core.service.EncryptionService.JasyptEncryptionService;
 import com.IntelliMate.core.service.GoogleOAuth.GoogleOAuthService;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
@@ -51,14 +52,16 @@ public class MainController
 	private final UserRepository userRepository;
 	private final JasyptEncryptionService jasyptEncryptionService;
 	private final RememberMeServices rememberMeService;
+	private final SystemMailService systemMailService;
 	private final UserService userService;
-	private final MailSendAndGetService mailSendAndGetService;
+	
 	
 	
 	public MainController(AIEngine aiEngine, GoogleOAuthService googleOAuthService, 
 			              JWTTokenService jwtTokenService, UserRepository userRepository,
 			              JasyptEncryptionService jasyptEncryptionService,
 			              RememberMeServices rememberMeService,
+			              SystemMailService systemMailService,
 			              MailSendAndGetService mailSendAndGetService,
 			              UserService userService) 
 	{
@@ -69,7 +72,7 @@ public class MainController
 		this.jasyptEncryptionService = jasyptEncryptionService;
 		this.rememberMeService = rememberMeService;
 	    this.userService = userService;
-	    this.mailSendAndGetService = mailSendAndGetService;
+	    this.systemMailService = systemMailService;
 	}
 	
 	
@@ -94,7 +97,7 @@ public class MainController
 		return "UsernameInputForPasswordReset";
 	}
 	
-	@GetMapping("/getPasswordResetMail")
+	@PostMapping("/getPasswordResetMail")
 	public ResponseEntity<String> RehandleGetPasswordResetMail(@RequestParam("email") String email, HttpSession session)
 	{
 		String to = email;
@@ -108,7 +111,7 @@ public class MainController
 		
 		try 
 		{
-			mailSendAndGetService.sendMail("chakra.n.jeet@gmail.com", to, subject, body, null);
+			systemMailService.sendEmail(to, subject, body);
 		} 
 		
 		catch(Exception e) 
@@ -126,7 +129,7 @@ public class MainController
 	                    <div style="text-align: center; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
 	                        <h2 style="color: #28a745;">Success!</h2>
 	                        <p>A reset link has been sent to your registered email.</p>
-	                        <a href="/login" style="color: #4285f4; text-decoration: none;">Return to Login</a>
+	                        <a href="/api/" style="color: #4285f4; text-decoration: none;">Return to Login</a>
 	                    </div>
 	                </body>
 	            </html>
@@ -272,7 +275,7 @@ public class MainController
 	    		// send welcome mail
 	    		try 
 	    		{
-	    			mailSendAndGetService.sendMail("chakra.n.jeet@gmail.com", to, subject, body, null);
+	    			systemMailService.sendEmail(to, subject, body);
 	    		} 
 	    		
 	    		catch(Exception e) 
@@ -375,10 +378,7 @@ public class MainController
 		
 		try 
 		{
-			mailSendAndGetService.sendMail("chakra.n.jeet@gmail.com", "jnc.chakra@gmail.com", subject, body, null);
-			
-			
-			System.out.println("Welcome email sent to " + to);
+			systemMailService.sendEmail(to, subject, body);
 		} 
 		
 		catch(Exception e) 
@@ -482,7 +482,7 @@ public class MainController
 		
 		try 
 		{
-			mailSendAndGetService.sendMail("chakra.n.jeet@gmail.com", to, subject, body, null);
+			systemMailService.sendEmail(to, subject, body);
 		} 
 		
 		catch(Exception e) 
