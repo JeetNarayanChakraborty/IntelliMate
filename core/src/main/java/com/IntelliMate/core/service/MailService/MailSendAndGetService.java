@@ -143,7 +143,7 @@ public class MailSendAndGetService
     
     
     // Helper method to get Gmail service
-    private Gmail getGmailService(String userId) throws IOException 
+    public Gmail getGmailService(String userId) throws IOException 
     {
         Credential credential = googleOAuthService.getStoredCredential(userId);
         

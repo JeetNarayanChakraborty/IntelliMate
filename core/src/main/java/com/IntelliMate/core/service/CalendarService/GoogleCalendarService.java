@@ -49,7 +49,7 @@ public class GoogleCalendarService
 		this.googleOAuthService = googleOAuthService;
 	}
 	
-	private Calendar getGoogleCalenderService(String userId) throws IOException
+	public Calendar getGoogleCalenderService(String userId) throws IOException
 	{
 		Credential credential = googleOAuthService.getStoredCredential(userId);
 		
