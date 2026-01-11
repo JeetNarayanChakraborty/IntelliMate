@@ -123,7 +123,7 @@ public class GooglePeopleService
     
     
     // Helper: Get People service
-    private PeopleService getPeopleService(String userId) throws IOException 
+    public PeopleService getPeopleService(String userId) throws IOException 
     {
         Credential credential = googleOAuthService.getStoredCredential(userId);
         
