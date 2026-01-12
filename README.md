@@ -1,6 +1,6 @@
 ## 🚀 Project Overview
 
-**IntelliMate** is a **2026-ready backend application** built using **Spring Boot + LLM (AI) integration**, showcasing how modern backend systems combine **traditional enterprise Java** with **AI-driven intelligence**.
+**IntelliMate** is a backend application built using **Spring Boot + LLM (AI) integration**, showcasing how modern backend systems combine **traditional enterprise Java** with **AI-driven intelligence**.
 
 The project focuses on **LLM orchestration, secure API design, persistent AI memory, and scalable backend architecture**, making it highly relevant for **Backend SDE1 roles in 2026**, where AI-assisted systems are becoming standard rather than optional.
 
